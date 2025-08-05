@@ -39,6 +39,7 @@ class SparrKULeeDatasetManager:
                     'sample_rate': int(feature.split('-')[-1]),
                 })
         self.files = pd.DataFrame(files)
+        self.files = self.files.sort_values(by=['split', 'subject', 'trial', 'feature']).reset_index(drop=True)
 
     def query(
             self,
