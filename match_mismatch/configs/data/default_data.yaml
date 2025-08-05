@@ -1,0 +1,10 @@
+data_dir: E:/Dataset/SparrKULee (preprocessed)/split
+num_classes: 5
+num_subjects: 85
+subset_ratio: 1.0
+window_length: 5
+step_length: 1
+min_spacing_length: 6
+features:
+  eeg-64: false
+  envelope-64: true

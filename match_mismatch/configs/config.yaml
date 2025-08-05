@@ -1,0 +1,15 @@
+# This file does not need to be modified.
+defaults:
+  - _self_
+  - model: default_model
+  - data: default_data
+  - trainer: default_trainer
+
+hydra:
+  run:
+    dir: ./match_mismatch/output/hydra/${model.model_name}/${name}/configs/${now:%Y-%m-%d_%H-%M-%S}
+
+seed: 42
+name: default_experiment
+test_only: false
+continue_training: false

@@ -1,0 +1,9 @@
+lr: 0.001
+lr_scheduler_patience: 10
+batch_size: 32
+early_stopping_patience: 5
+max_epochs: 100
+precision: 16-mixed
+
+devices: auto
+accelerator: gpu
