@@ -1,6 +1,6 @@
 .vscode
 .idea
-__pycache__/
+**/__pycache__/
 utils/preprocessing/preprocessing.log
 utils/download/content.json
 utils/download/dataset_link.txt
