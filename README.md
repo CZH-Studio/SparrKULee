@@ -7,19 +7,15 @@
 | 2分类 | 50048 | 43735(87.39%) | 41974(83.87%) | 41437(82.79%) |
 | 5分类 | 50048 | 35150(70.23%) | 32346(64.63%) | 31073(62.09%) |
 
-运行（以SOTA模型为例）
+## 有关SOTA模型
 
-```sh
-# 不带参数
-python -m match_mismatch.experiments.sota
-# 带参数（推荐设置）
-python -m match_mismatch.experiments.sota -p 10 -c 2 -n p10nc2 -b 64
-```
+只运行SOTA模型本身，参考`match_mismatch/src/experiments/sota.py`
 
-参数
+多个SOTA并行计算，参考`match_mismatch/src/experiments/sota_parallel.py`
 
-1. `-p`：保留的数据百分比
-2. `-c`：分类类别数
-3. `-n`：实验名称
-4. `-e`：是否只测试（已训练完模型）
-5. `-b`：batch size
+如果先单独训练若干个SOTA，再集成，则参考`match_mismatch/src/experiments/sota_ensemble.py`
+
+有关SOTA模型的具体实现，参考`match_mismatch/src/models/sota.py`和`match_mismatch/src/models/dilated_conv_models.py`
+
+所有的配置项在`match_mismatch/configs`文件夹
+
