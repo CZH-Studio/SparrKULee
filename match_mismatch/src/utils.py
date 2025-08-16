@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Type, List, Tuple
+import copy
 
 import lightning.pytorch as pl
 import pandas as pd
@@ -26,6 +27,18 @@ def _init_(cfg, results_dir):
     pl.seed_everything(cfg.seed)
     torch.set_float32_matmul_precision('medium')
     _INIT_ = True
+
+
+def rename_model_name(cfg, new_name):
+    """
+    返回一个全新的cfg，其model.model_name属性修改为new_name
+    :param cfg: dict config
+    :param new_name: 名称
+    :return: cfg_new
+    """
+    cfg_new = copy.deepcopy(cfg)
+    cfg_new.model.model_name = new_name
+    return cfg_new
 
 
 class DynamicProgressBar(TQDMProgressBar):
@@ -146,7 +159,13 @@ class LitBaseModule(pl.LightningModule):
         self.stats = torch.zeros((3, 2), dtype=torch.float32)  # 3行2列的矩阵，分别记录训练集、验证集、测试集的total、correct
 
     def calc_step(self, batch_data: Tuple[List[torch.Tensor], torch.Tensor]):
-        raise NotImplementedError("Please implement calc_step method, to calculate loss, total and correct.")
+        data, label = batch_data
+        out = self(data)
+        loss = self.criterion(out, label)
+        pred = torch.argmax(out, dim=1)
+        total = len(label)
+        correct = (pred == label).sum().item()
+        return loss, total, correct
 
     def forward(self, x):
         return self.model(x)
@@ -220,10 +239,7 @@ def train(model_class: "Type[pl.LightningModule]", cfg: DictConfig, results_dir:
     _init_(cfg, results_dir)
     ckpt_dir = results_dir / "models"
     model_path = ckpt_dir / (cfg.model.save_name + ".ckpt")
-    if model_path.exists() and cfg.continue_training:
-        model = model_class.load_from_checkpoint(str(model_path), cfg=cfg)
-    else:
-        model = model_class(cfg)
+    model = model_class(cfg)
     checkpoint_callback = ModelCheckpoint(
         dirpath=str(ckpt_dir),
         filename=cfg.model.save_name,
@@ -250,7 +266,7 @@ def train(model_class: "Type[pl.LightningModule]", cfg: DictConfig, results_dir:
         accelerator=cfg.trainer.accelerator,
         callbacks=[checkpoint_callback, early_stopping_callback, progressbar],
         logger=logger,
-        num_sanity_val_steps=0,
+        num_sanity_val_steps=0
     )
     if isinstance(cfg.data.num_subjects, int):
         subjects = list(range(1, cfg.data.num_subjects + 1))
@@ -265,7 +281,10 @@ def train(model_class: "Type[pl.LightningModule]", cfg: DictConfig, results_dir:
     val_loader = dataset_manager.match_mismatch_dataloader(
         "val", subjects=subjects, batch_size=cfg.trainer.batch_size, **cfg.data
     )
-    trainer.fit(model, train_loader, val_loader)
+    if model_path.exists() and cfg.continue_training:
+        trainer.fit(model, train_loader, val_loader, ckpt_path=model_path)
+    else:
+        trainer.fit(model, train_loader, val_loader)
     best_val_acc = checkpoint_callback.best_model_score.item()
     return trainer, model, best_val_acc
 
@@ -283,6 +302,17 @@ def load(model_class: "Type[pl.LightningModule]", cfg: DictConfig, results_dir: 
         logger=False,
     )
     return trainer, model
+
+
+def save(model_class: "Type[pl.LightningModule]", cfg: DictConfig, results_dir: Path):
+    _init_(cfg, results_dir)
+    model = model_class(cfg)
+    model_path = results_dir / "models" / (cfg.model.save_name + ".ckpt")
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({
+        "state_dict": model.state_dict(),
+        'pytorch-lightning_version': pl.__version__,
+    }, model_path)
 
 
 def test(cfg, results_dir, trainer, model):
@@ -320,11 +350,14 @@ def test(cfg, results_dir, trainer, model):
     df.to_csv(results_dir / "test_results.csv", index_label="Subject")
 
 
-def run(model_class: "Type[pl.LightningModule]", cfg, results_dir):
+def run(model_class: "Type[pl.LightningModule]", cfg, results_dir, immediate_save=False):
     # match_mismatch / output / baseline / default_experiment
     _init_(cfg, results_dir)
 
     if not cfg.test_only:
         train(model_class, cfg, results_dir)
+    if immediate_save:
+        # 该选项用于跳过了训练过程，但是希望先保存一下模型，以便后续测试用
+        save(model_class, cfg, results_dir)
     trainer, model = load(model_class, cfg, results_dir)
     test(cfg, results_dir, trainer, model)

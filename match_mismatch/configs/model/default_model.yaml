@@ -7,9 +7,60 @@ baseline_shared:
   hidden_dim: 16
 sota:
   hidden_dim: 16
+sota_ensemble:
+  using_models:
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-1/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-2/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-3/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-4/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-5/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-6/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-7/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-8/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-9/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-10/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-11/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-12/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-13/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-14/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-15/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-16/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-17/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-18/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-19/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/sota/p-10_nc-5_seed-20/models/model.ckpt
+sota_parallel:
+  hidden_dim: 16
+  n_parallel: 10
+  use_checkpoint: false
+
 clip:
   hidden_dim: 16
   temperature: 0.07
   load_from_pretrained: true
-  pretrained_model_path: E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_pretrained/bsz-1024/models/model.ckpt
+  pretrained_model_path: E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_pretrained/bsz-32/models/model.ckpt
   freeze_grad_when_tuning: true
+  with_difficulty: true
+  difficulty_alpha: 1.0
+clip_ensemble:
+  using_models:
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-1_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-2_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-3_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-4_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-5_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-6_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-7_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-8_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-9_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-10_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-11_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-12_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-13_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-14_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-15_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-16_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-17_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-18_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-19_PEFT/models/model.ckpt
+    - E:/Code/SparrKULee/SparrKULee/match_mismatch/output/clip_cls/p-10_nc-5_bsz-32_easy_seed-20_PEFT/models/model.ckpt

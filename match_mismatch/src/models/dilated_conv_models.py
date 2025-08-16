@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 
 class DilatedConvModel(nn.Module):
-    def __init__(self, hidden_dim=16, num_channels=64, feature_dim=1):
+    def __init__(self, hidden_dim=16, num_channels=64, feature_dim=1, inplace=False):
         """
         baseline模型使用的可分离卷积
         :param num_channels: eeg通道数
@@ -16,20 +16,20 @@ class DilatedConvModel(nn.Module):
         self.hidden_dim = hidden_dim
         self.conv_eeg = nn.Sequential(
             nn.Conv1d(num_channels, 8, kernel_size=1, stride=1),
-            nn.Conv1d(8, hidden_dim, kernel_size=3, dilation=3**0),
-            nn.ReLU(),
-            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3**1),
-            nn.ReLU(),
-            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3**2),
-            nn.ReLU(),
+            nn.Conv1d(8, hidden_dim, kernel_size=3, dilation=3 ** 0),
+            nn.ReLU(inplace=inplace),
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3 ** 1),
+            nn.ReLU(inplace=inplace),
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3 ** 2),
+            nn.ReLU(inplace=inplace),
         )
         self.conv_stimuli = nn.Sequential(
-            nn.Conv1d(feature_dim, hidden_dim, kernel_size=3, dilation=3**0),
-            nn.ReLU(),
-            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3**1),
-            nn.ReLU(),
-            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3**2),
-            nn.ReLU(),
+            nn.Conv1d(feature_dim, hidden_dim, kernel_size=3, dilation=3 ** 0),
+            nn.ReLU(inplace=inplace),
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3 ** 1),
+            nn.ReLU(inplace=inplace),
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, dilation=3 ** 2),
+            nn.ReLU(inplace=inplace),
         )
         self.linear = nn.Linear(hidden_dim ** 2, 1)
 
@@ -81,7 +81,7 @@ class SharedDilatedConvModel(nn.Module):
         self.hidden_dim = hidden_dim
         self.conv_eeg = nn.Sequential(
             nn.Conv1d(num_channels, 8, kernel_size=1, stride=1),
-            nn.Conv1d(8, hidden_dim, kernel_size=3, dilation=3**0),
+            nn.Conv1d(8, hidden_dim, kernel_size=3, dilation=3 ** 0),
             nn.ReLU(),
         )
         self.conv_stimuli = nn.Sequential(
@@ -166,18 +166,18 @@ class SimilarityDilatedConvModel(nn.Module):
 
         # EEG
         eeg = eeg.permute(0, 2, 1)  # (B, C, T)
-        eeg_embedding: torch.Tensor = self.conv_eeg(eeg)    # (B, 16, T)
-        eeg_embedding = eeg_embedding.permute(1, 0, 2)      # (16, B, T)
+        eeg_embedding: torch.Tensor = self.conv_eeg(eeg)  # (B, 16, T)
+        eeg_embedding = eeg_embedding.permute(1, 0, 2)  # (16, B, T)
         eeg_embedding = F.normalize(eeg_embedding, dim=-1)
 
         # Envelope
-        envelope = envelope.permute(0, 2, 1)     # (B, 1, T)
+        envelope = envelope.permute(0, 2, 1)  # (B, 1, T)
         envelope_embedding = self.conv_stimuli(envelope)  # (B, 16, T)
         envelope_embedding = envelope_embedding.permute(1, 0, 2)  # (16, B, T)
         envelope_embedding = F.normalize(envelope_embedding, dim=-1)
 
         # Cosine similarity
-        envelope_embedding_t = envelope_embedding.transpose(1, 2)
+        envelope_embedding_t = envelope_embedding.transpose(1, 2)  # (16, T, B)
         sim = torch.bmm(eeg_embedding, envelope_embedding_t)  # (16, B, B)
         sim = sim.permute(1, 2, 0)  # (B, B, 16)
         sim = self.projector(sim)  # (B, B, 1)

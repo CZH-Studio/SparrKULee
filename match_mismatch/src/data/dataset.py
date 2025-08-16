@@ -96,7 +96,7 @@ class SparrKULeeDatasetManager:
             num_classes: int = 5,
             batch_size: int = 32,
             num_workers: int = 4,
-            **kwargs
+            **_kwargs
     ):
         """
         初始化一个dataloader
