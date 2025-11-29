@@ -1,0 +1,6 @@
+name: ffr
+class: dilated_conv.DilatedConvModelFFR
+params:
+  hidden_dim: 16
+  num_channels: 64
+  feature_dim: 1

@@ -1,0 +1,7 @@
+name: baseline
+class: dilated_conv.DilatedConvModel
+params:
+  hidden_dim: 16
+  num_channels: 64
+  feature_dim: 1
+  

@@ -1,0 +1,9 @@
+.venv/
+.vscode/
+.hypothesis/
+BMMSNet-main/
+**/__pycache__/
+run.sh
+lightning_logs/
+**/ckpt/
+**/tb_logs/

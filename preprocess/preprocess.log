@@ -1,0 +1,21 @@
+[2025-09-11 16:31:42,234] [MainProcess] [INFO] Start running pipeline: 1 / 1
+[2025-09-11 16:31:43,794] [MainProcess] [INFO] Started worker process 17280
+[2025-09-11 16:31:45,021] [MainProcess] [INFO] Started worker process 7544
+[2025-09-11 16:32:02,147] [Process-1] [INFO] Running step LoadEEG (1/13)
+[2025-09-11 16:32:07,210] [Process-1] [INFO] Loaded EEG from sub-001_ses-shortstories01_task-listeningActive_run-01_eeg.bdf.gz with shape (64, 1054720), 1024.0 Hz.
+[2025-09-11 16:32:10,930] [Process-1] [INFO] Running step LinkEEG2Stimuli (2/13)
+[2025-09-11 16:32:11,773] [Process-1] [INFO] Found SNR value: 100.0
+[2025-09-11 16:32:15,439] [Process-1] [INFO] Loaded stimuli from audiobook_5_1.npz.gz with shape (43493213,)
+[2025-09-11 16:32:16,162] [Process-1] [INFO] Loaded stimuli trigger from t_audiobook_5_1.npz.gz with shape (43493213,)
+[2025-09-11 16:32:17,223] [Process-1] [INFO] Running step SosFilter (3/13)
+[2025-09-11 16:32:19,983] [Process-1] [INFO] Running step InterpolateArtifacts (4/13)
+[2025-09-11 16:32:21,005] [Process-1] [INFO] Interpolated 0 artifact samples in all channels.
+[2025-09-11 16:32:21,833] [Process-1] [INFO] Running step Align (5/13)
+[2025-09-11 16:32:25,240] [Process-1] [INFO] Running step RemoveArtifacts (6/13)
+[2025-09-11 16:32:37,847] [Process-1] [INFO] Running step CommonAverageReference (7/13)
+[2025-09-11 16:32:40,002] [Process-1] [INFO] Running step ResamplePoly (8/13)
+[2025-09-11 16:32:45,411] [Process-1] [INFO] Running step Save (9/13)
+[2025-09-11 16:32:49,866] [Process-1] [INFO] Running step GC (10/13)
+[2025-09-11 16:32:53,088] [Process-1] [INFO] Running step SosFilter (11/13)
+[2025-09-11 16:32:58,469] [Process-1] [INFO] Running step ResamplePoly (12/13)
+[2025-09-11 16:33:05,200] [Process-1] [INFO] Running step Save (13/13)
