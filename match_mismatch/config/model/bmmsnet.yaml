@@ -1,6 +1,12 @@
 name: ffr
 class: BMMSNet.BMMSNet
 params:
-  hidden_dim: 16
   num_channels: 64
   feature_dim: 1
+  enhance_module:
+    dropout: 0.2
+    ffn_dim: 128
+    num_heads: 4
+  dense_block:
+    growth_rate: 16
+    num_layers: 10

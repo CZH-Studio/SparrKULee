@@ -21,12 +21,12 @@ class SinusoidalPositionalEmbedding(nn.Module):
         )
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        pe = self.pe.transpose(0, 1).unsqueeze(0)
+        pe = self.pe.transpose(0, 1).unsqueeze(0)  # (1, emb_dim, max_len)
         self.register_buffer("pe", pe)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        x = x + self.pe[:, :, : x.size(2)]
+        x = x + self.pe[:, :, : x.shape[2]]
         return self.dropout(x)
 
 
@@ -91,21 +91,37 @@ class EnhanceDecoderLayer(nn.Module):
 class EnhanceModule(nn.Module):
     def __init__(self, **kwargs):
         super().__init__()
-        self.dropout = kwargs["dropout"]
-        self.emb_dim = kwargs["emb_dim"]
-        self.ffn_dim = kwargs["ffn_dim"]
-        self.num_heads = kwargs["num_heads"]
+        self.dropout = kwargs.get("dropout", 0.2)
+        self.emb_dim = 4 * kwargs.get("num_channels", 64)
+        self.ffn_dim = kwargs.get("ffn_dim", 128)
+        self.num_heads = kwargs.get("num_heads", 4)
 
         self.encoder = nn.ModuleList(
             [
-                EnhanceEncoderLayer(1, 4, (3, 5), (1, 2), (1, 1), self.dropout),
-                EnhanceEncoderLayer(4, 4, (3, 5), (1, 2), (1, 1), self.dropout),
-                EnhanceEncoderLayer(4, 8, (3, 5), (1, 2), (2, 2), self.dropout),
-                EnhanceEncoderLayer(8, 8, (3, 5), (1, 2), (1, 1), self.dropout),
-                EnhanceEncoderLayer(8, 16, (3, 5), (1, 2), (2, 2), self.dropout),
-                EnhanceEncoderLayer(16, 16, (3, 5), (1, 2), (1, 1), self.dropout),
-                EnhanceEncoderLayer(16, 32, (3, 5), (1, 2), (2, 2), self.dropout),
-                EnhanceEncoderLayer(32, 32, (3, 5), (1, 2), (1, 1), self.dropout),
+                EnhanceEncoderLayer(
+                    1, 4, (3, 5), (1, 2), (1, 1), self.dropout
+                ),  # (B, 4, C, T)
+                EnhanceEncoderLayer(
+                    4, 4, (3, 5), (1, 2), (1, 1), self.dropout
+                ),  # (B, 4, C, T)
+                EnhanceEncoderLayer(
+                    4, 8, (3, 5), (1, 2), (2, 2), self.dropout
+                ),  # (B, 8, C // 2, T // 2)
+                EnhanceEncoderLayer(
+                    8, 8, (3, 5), (1, 2), (1, 1), self.dropout
+                ),  # (B, 8, C // 2, T // 2)
+                EnhanceEncoderLayer(
+                    8, 16, (3, 5), (1, 2), (2, 2), self.dropout
+                ),  # (B, 16, C // 4, T // 4)
+                EnhanceEncoderLayer(
+                    16, 16, (3, 5), (1, 2), (1, 1), self.dropout
+                ),  # (B, 16, C // 4, T // 4)
+                EnhanceEncoderLayer(
+                    16, 32, (3, 5), (1, 2), (2, 2), self.dropout
+                ),  # (B, 32, C // 8, T // 8)
+                EnhanceEncoderLayer(
+                    32, 32, (3, 5), (1, 2), (1, 1), self.dropout
+                ),  # (B, 32, C // 8, T // 8)
             ]
         )
         self.decoder = nn.ModuleList(
@@ -148,18 +164,13 @@ class EnhanceModule(nn.Module):
         for encoder in self.encoder:
             x = encoder(x)
             encoder_out.append(x)
-
-        B, C1, C2, T = x.shape
-        # x = x.reshape((B, C1*C2, T)).permute((0, 2, 1))
-        # x = self.gru(x)[0].permute((0, 2, 1)).reshape((B, C1, C2, T))
-
-        x = x.reshape((B, C1 * C2, T))
+        B, C1, C2, T = x.shape  # (B, 32, C // 8, T // 8)
+        x = x.reshape((B, C1 * C2, T))  # (B, 4 * C, T // 8)
         x = self.transformer(x).reshape((B, C1, C2, T))
         x = self.decoder[0](x)
         for i in range(7):
             x = self.decoder[i + 1](torch.cat((x, encoder_out[6 - i]), 1))
-
-        return x
+        return x  # (B, 1, C, T)
 
 
 class DenseBlock(nn.Module):
@@ -168,6 +179,7 @@ class DenseBlock(nn.Module):
         self.in_channels = kwargs["in_channels"]
         self.growth_rate = kwargs["growth_rate"]
         self.num_layers = kwargs["num_layers"]
+        self.return_reversed = kwargs.get("return_reversed", False)
         self.kernel_size = kwargs.get("kernel_size", 5)
         self.padding: tuple = kwargs.get(
             "padding", (self.kernel_size // 2, self.kernel_size // 2)
@@ -198,11 +210,13 @@ class DenseBlock(nn.Module):
         for layer in self.layers:
             x = layer(F.pad(torch.cat(features, dim=1), self.padding, value=0))
             features.append(x)
-        # (B, C+L*G, T), L * (B, G, T),
-        return torch.cat(features, dim=1), features[1:], x
+        return_features = features[1:]  # L x (B, G, T)
+        if self.return_reversed:
+            return_features.reverse()
+        return torch.cat(return_features, dim=1)  # (B, L x G, T)
 
 
-def pearson_torch(y_true, y_pred, axis=1):
+def pearson_corr(y_true, y_pred, axis=-1):
     """Pearson correlation function implemented in PyTorch.
 
     Parameters
@@ -245,13 +259,28 @@ def pearson_torch(y_true, y_pred, axis=1):
 class BMMSNet(MatchMismatchModel):
     def __init__(self, **kwargs) -> None:
         super().__init__()
+        self.num_channels = kwargs["num_channels"]
         self.feature_dim = kwargs["feature_dim"]
+        self.enhance_kwargs = kwargs["enhance_module"]
+        self.dense_kwargs = kwargs["dense_block"]
+        self.growth_rate = self.dense_kwargs["growth_rate"]
+        self.num_layers = self.dense_kwargs["num_layers"]
 
-        self.enhance_module = EnhanceModule(**kwargs)
+        self.enhance_module = EnhanceModule(**self.enhance_kwargs)
         self.dense_eeg = nn.Sequential(
-            nn.Conv1d(128, 32, kernel_size=5, dilation=3**0, padding="same"),
+            # (B, 128, T)
+            nn.Conv1d(
+                2 * self.num_channels, 32, kernel_size=5, dilation=3**0, padding="same"
+            ),
             nn.PReLU(),
-            DenseBlock(in_channels=32, growth_rate=16, num_layers=10),
+            # (B, 32, T)
+            DenseBlock(
+                in_channels=32,
+                growth_rate=self.growth_rate,
+                num_layers=self.num_layers,
+                return_reversed=True,
+            ),
+            # (B, L x G, T)
         )
         self.dense_stimuli = nn.Sequential(
             # (B, C, T)
@@ -260,31 +289,39 @@ class BMMSNet(MatchMismatchModel):
             ),
             nn.PReLU(),
             # (B, 32, T)
-            DenseBlock(in_channels=32, growth_rate=16, num_layers=10),
+            DenseBlock(
+                in_channels=32, growth_rate=self.growth_rate, num_layers=self.num_layers
+            ),
+            # (B, L x G, T)
         )
-        self.linear = nn.Linear(160, 1)
-        self.softmax = nn.Softmax(-1)
+        self.linear = nn.Linear(self.growth_rate * self.num_layers, 1)
 
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
-        eeg, envelope = x
         # eeg: (B, T, C)
         # envelope: (B, num_classes, T, 1)
+        eeg, envelope = x
+        eeg: torch.Tensor
+        envelope: torch.Tensor
+        B, num_classes, T, C = envelope.shape
+
+        # eeg
         eeg = eeg.permute((0, 2, 1))  # (B, C, T)
         enhanced_eeg = self.enhance_module(eeg.unsqueeze(1)).squeeze(1)  # (B, C, T)
-        eeg = self.dense_eeg(torch.cat((enhanced_eeg, eeg), 1))[1]
-        eeg.reverse()
-        eeg = torch.cat(eeg, 1)
-        # original stimulus_all: num_classes x (B, T, C)
-        stimulus_out = []
-        for stimulus in stimulus_all:
-            stimulus = self.dense_stimulus1(stimulus.permute((0, 2, 1)))[1]
+        eeg = self.dense_eeg(torch.cat((enhanced_eeg, eeg), 1))  # (B, L x G, T)
+        eeg = eeg.unsqueeze(1).expand(
+            -1, num_classes, -1, -1
+        )  # (B, num_classes, L x G, T)
 
-            stimulus_out.append(torch.cat(stimulus, 1))
+        # envelope
+        envelope = (
+            envelope.permute(0, 1, 3, 2).contiguous().reshape(-1, C, T)
+        )  # (B x num_classes, C, T)
+        envelope = self.dense_stimuli(envelope).reshape(
+            B, num_classes, -1, T
+        )  # (B, num_classes, L x G, T)
 
-        cos_score = [pearson_torch(eeg, each, axis=-1) for each in stimulus_out]
+        # corr
+        corr = pearson_corr(eeg, envelope, axis=-1)  # (B, num_classes, L x G)
+        corr = self.linear(corr).squeeze(-1)  # (B, num_classes)
 
-        cos_score_linear = [self.linear(each) for each in cos_score]
-
-        out = self.softmax(torch.cat(cos_score_linear, 1))
-
-        return out
+        return corr
