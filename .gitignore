@@ -6,3 +6,4 @@ run.sh
 lightning_logs/
 **/ckpt/
 **/tb_logs/
+transformer-clip-eeg/

@@ -9,8 +9,7 @@ features:
     is_stimuli: false
   - name: envelope
     sr: 64
-    is_stimuli: true
-    random_strategy: random
+    is_stimuli: false
 seed: 42
 batch_size: 256
 splits:
@@ -25,7 +24,7 @@ splits:
     random_records: false
     shuffle: false
   test:
-    subjects: 1-71
+    subjects: 72-85
     num_records: 1.0
     random_records: false
     shuffle: false

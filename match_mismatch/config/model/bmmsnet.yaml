@@ -1,4 +1,4 @@
-name: ffr
+name: bmmsnet
 class: BMMSNet.BMMSNet
 params:
   num_channels: 64

@@ -21,7 +21,7 @@ class SinusoidalPositionalEmbedding(nn.Module):
         )
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        pe = self.pe.transpose(0, 1).unsqueeze(0)  # (1, emb_dim, max_len)
+        pe = pe.transpose(0, 1).unsqueeze(0)  # (1, emb_dim, max_len)
         self.register_buffer("pe", pe)
         self.dropout = nn.Dropout(dropout)
 
@@ -148,14 +148,12 @@ class EnhanceModule(nn.Module):
                 EnhanceDecoderLayer(8, 1, (3, 5), (1, 2), (1, 1), self.dropout, (0, 0)),
             ]
         )
-        self.transformer = nn.Sequential(
-            SinusoidalPositionalEmbedding(emb_dim=self.emb_dim),
-            nn.TransformerEncoderLayer(
-                d_model=self.emb_dim,
-                dim_feedforward=self.ffn_dim,
-                nhead=self.num_heads,
-                batch_first=True,
-            ),
+        self.pe = SinusoidalPositionalEmbedding(emb_dim=self.emb_dim)
+        self.transformer = nn.TransformerEncoderLayer(
+            d_model=self.emb_dim,
+            dim_feedforward=self.ffn_dim,
+            nhead=self.num_heads,
+            batch_first=True,
         )
 
     def forward(self, x):
@@ -165,8 +163,10 @@ class EnhanceModule(nn.Module):
             x = encoder(x)
             encoder_out.append(x)
         B, C1, C2, T = x.shape  # (B, 32, C // 8, T // 8)
-        x = x.reshape((B, C1 * C2, T))  # (B, 4 * C, T // 8)
-        x = self.transformer(x).reshape((B, C1, C2, T))
+        x = x.reshape((B, C1 * C2, T))
+        x = self.pe(x)
+        x = x.permute(0, 2, 1)  # (B, T // 8, 4 * C)
+        x = self.transformer(x).permute(0, 2, 1).reshape((B, C1, C2, T))
         x = self.decoder[0](x)
         for i in range(7):
             x = self.decoder[i + 1](torch.cat((x, encoder_out[6 - i]), 1))
