@@ -1,0 +1,30 @@
+root_dir: /hdd/EEG/Audio/SparrKULee/derivatives/official_split
+window_size: 5.0
+shift_size: 1.0
+min_spacing: 6.0
+num_classes: 5
+features:
+  - name: eeg
+    sr: 64
+    is_stimuli: false
+  - name: envelope
+    sr: 64
+    is_stimuli: true
+seed: 42
+batch_size: 256
+splits:
+  train:
+    subjects: 1-71
+    num_records: 1.0
+    random_records: false
+    shuffle: true
+  val:
+    subjects: 1-71
+    num_records: 1.0
+    random_records: false
+    shuffle: false
+  test:
+    subjects: 72-85
+    num_records: 1.0
+    random_records: false
+    shuffle: false

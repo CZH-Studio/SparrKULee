@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from . import MatchMismatchModel, CLIPModel
+from . import MatchMismatchModel, ContrastLearningModel
 
 
 class ConvBlock(nn.Module):
@@ -154,8 +154,31 @@ class CLIPClsModel(MatchMismatchModel):
         self.eeg_encoder = EEGEncoder(**self.eeg_encoder_kwargs)
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
+    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+        eeg, speech = x
+        # eeg: (B, T, C)
+        # speech: (B, num_classes, T, C)
+        B, num_classes, T, C = speech.shape
+        speech = speech.reshape(B * num_classes, T, C)  # (B*num_classes, T, C)
+        eeg_features = self.eeg_encoder(eeg)
+        speech_features = self.speech_encoder(speech)
+        # flatten to get embeddings
+        eeg_features = torch.flatten(eeg_features, start_dim=1)
+        speech_features = torch.flatten(speech_features, start_dim=1)
+        # L2-normalize
+        eeg_features = F.normalize(eeg_features, p=2, dim=1)  # (B, E)
+        speech_features = F.normalize(speech_features, p=2, dim=1)  # (B*num_classes, E)
+        speech_features = speech_features.reshape(
+            B, num_classes, -1
+        )  # (B, num_classes, E)
+        # use einsum to compute logits
+        logits = torch.einsum(
+            "be, bce -> bc", eeg_features, speech_features
+        )  # (B, num_classes)
+        return logits
 
-class CLIPStandardModel(CLIPModel):
+
+class CLIPModel(ContrastLearningModel):
     def __init__(self, **kwargs):
         super().__init__()
         temperature = kwargs.get("temperature", 0.075)

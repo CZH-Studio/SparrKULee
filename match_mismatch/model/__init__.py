@@ -21,7 +21,7 @@ class MatchMismatchModel(nn.Module, ABC):
         raise NotImplementedError()
 
 
-class CLIPModel(nn.Module, ABC):
+class ContrastLearningModel(nn.Module, ABC):
     def __init__(self, **kwargs) -> None:
         super().__init__()
 
@@ -40,11 +40,11 @@ class CLIPModel(nn.Module, ABC):
         raise NotImplementedError()
 
 
-class LitCLIPModule(pl.LightningModule):
+class LitContrastLearningModule(pl.LightningModule):
     def __init__(
         self,
         data_config: dict,
-        model: CLIPModel,
+        model: ContrastLearningModel,
         optimizer_config: dict,
         scheduler_config: dict,
     ) -> None:
@@ -85,7 +85,7 @@ class LitCLIPModule(pl.LightningModule):
         return self.model(x)
 
     def _compute(self, batch_data) -> torch.Tensor:
-        # in CLIP, accuracy is not as important as loss, so we don't compute accuracy here
+        # in contrast learning, accuracy is not as important as loss, so we don't compute accuracy here
         out = self(batch_data)
         loss = self.model.compute_loss(out)
         return loss
@@ -284,13 +284,15 @@ def get_features(data_config: dict) -> list[Feature]:
     ]
 
 
-def get_model_class(model_name: str) -> Type[MatchMismatchModel | CLIPModel]:
+def get_model_class(
+    model_name: str,
+) -> Type[MatchMismatchModel | ContrastLearningModel]:
     module_name, class_name = model_name.rsplit(".", 1)
     module = importlib.import_module("match_mismatch.model." + module_name)
     return getattr(module, class_name)
 
 
-def get_model(model_config: dict) -> MatchMismatchModel | CLIPModel:
+def get_model(model_config: dict) -> MatchMismatchModel | ContrastLearningModel:
     model_class = get_model_class(model_config["class"])
     model = model_class(**model_config["params"])
     return model
@@ -301,42 +303,64 @@ def get_litmodule(
     model_config: dict,
     trainer_config: dict,
     ckpt_path: Path | None = None,
-) -> LitMatchMismatchModule | LitCLIPModule:
+) -> LitMatchMismatchModule | LitContrastLearningModule:
     """获取lit module，当指定ckpt_path时，加载ckpt，否则初始化"""
     model = get_model(model_config)
     optimizer_config = trainer_config["optimizer"]
     scheduler_config = trainer_config["scheduler"]
-    if isinstance(model, MatchMismatchModel):
-        if ckpt_path is None:
-            litmodule = LitMatchMismatchModule(
-                data_config=data_config,
-                model=model,
-                optimizer_config=optimizer_config,
-                scheduler_config=scheduler_config,
-            )
-        else:
-            litmodule = LitMatchMismatchModule.load_from_checkpoint(
-                ckpt_path,
-                data_config=data_config,
-                model=model,
-                optimizer_config=optimizer_config,
-                scheduler_config=scheduler_config,
-            )
-    elif isinstance(model, CLIPModel):
-        if ckpt_path is None:
-            litmodule = LitCLIPModule(
-                data_config=data_config,
-                model=model,
-                optimizer_config=optimizer_config,
-                scheduler_config=scheduler_config,
-            )
-        else:
-            litmodule = LitCLIPModule.load_from_checkpoint(
-                ckpt_path,
-                data_config=data_config,
-                model=model,
-                optimizer_config=optimizer_config,
-            )
+    kwargs = {
+        "data_config": data_config,
+        "model": model,
+        "optimizer_config": optimizer_config,
+        "scheduler_config": scheduler_config,
+    }
+    model_module_mapping = {
+        "MatchMismatchModel": LitMatchMismatchModule,
+        "ContrastLearningModel": LitContrastLearningModule,
+    }
+    model_class = model.__class__.__bases__[0].__name__
+    litmodule_class = model_module_mapping[model_class]
+    banned_keys = set(["model"])
+
+    if ckpt_path is None or not ckpt_path.exists():
+        litmodule = litmodule_class(**kwargs)
     else:
-        raise TypeError(f"Unsupported model type: {type(model)}")
+        try:
+            litmodule = litmodule_class.load_from_checkpoint(ckpt_path, **kwargs)
+        except TypeError:
+            litmodule = torch.load(ckpt_path)
+            for k, v in kwargs.items():
+                if k not in banned_keys:
+                    setattr(litmodule, k, v)
     return litmodule
+
+
+def find_ckpt(ckpt_dir: Path, mode="last"):
+    """判断当前路径下是否存在最后保存/最好的模型
+
+    Args:
+        ckpt_dir (Path): 模型跟路径
+
+    Returns:
+        Path | None: 模型路径
+    """
+    if not ckpt_dir.exists():
+        return None
+    last_ckpt = ckpt_dir / "last.ckpt"
+    best_ckpt = ckpt_dir / "best.ckpt"
+    if mode == "last":
+        if last_ckpt.exists():
+            return last_ckpt
+        elif best_ckpt.exists():
+            return best_ckpt
+        else:
+            return None
+    elif mode == "best":
+        if best_ckpt.exists():
+            return best_ckpt
+        elif last_ckpt.exists():
+            return last_ckpt
+        else:
+            return None
+    else:
+        raise ValueError("mode must be 'last' or 'best'")

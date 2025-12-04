@@ -8,43 +8,14 @@ import lightning.pytorch as pl
 from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 from lightning.pytorch.loggers import TensorBoardLogger
 
-from match_mismatch.model import get_litmodule
-
-
-def find_ckpt(ckpt_dir: Path, mode="last"):
-    """判断当前路径下是否存在最后保存/最好的模型
-
-    Args:
-        ckpt_dir (Path): 模型跟路径
-
-    Returns:
-        Path | None: 模型路径
-    """
-    if not ckpt_dir.exists():
-        return None
-    last_ckpt = ckpt_dir / "last.ckpt"
-    best_ckpt = ckpt_dir / "best.ckpt"
-    if mode == "last":
-        if last_ckpt.exists():
-            return last_ckpt
-        elif best_ckpt.exists():
-            return best_ckpt
-        else:
-            return None
-    elif mode == "best":
-        if best_ckpt.exists():
-            return best_ckpt
-        elif last_ckpt.exists():
-            return last_ckpt
-        else:
-            return None
-    else:
-        raise ValueError("mode must be 'last' or 'best'")
+from match_mismatch.model import get_litmodule, find_ckpt
 
 
 def train(data_config: dict, model_config: dict, trainer_config: dict, ckpt_dir: Path):
     pl.seed_everything(data_config["seed"])
-    litmodule = get_litmodule(data_config, model_config, trainer_config, None)
+    litmodule = get_litmodule(
+        data_config, model_config, trainer_config, find_ckpt(ckpt_dir, "last")
+    )
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
         mode="min",
@@ -77,7 +48,7 @@ def train(data_config: dict, model_config: dict, trainer_config: dict, ckpt_dir:
         logger=tensorboard_logger,
         use_distributed_sampler=False,
     )
-    trainer.fit(litmodule, ckpt_path=find_ckpt(ckpt_dir, "last"))
+    trainer.fit(litmodule)
 
 
 def evaluate(
