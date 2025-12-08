@@ -13,20 +13,26 @@ from brain_pipeline.step.step import Step
 from brain_pipeline.step.common import GC
 from brain_pipeline import DefaultKeys, OptionalKey
 
+
 def setup_worker_logger(log_queue: mp.Queue):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     queue_handler = QueueHandler(log_queue)
     logger.addHandler(queue_handler)
     return logger
-    
-def setup_main_logger(log_path: Path, log_queue: mp.Queue, overwrite=True):
+
+
+def setup_main_logger(
+    log_path: Path, log_queue: mp.Queue, overwrite=True
+) -> tuple[Logger, QueueListener]:
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     if overwrite and log_path.exists():
         log_path.unlink()
     # formatter
-    formatter = logging.Formatter("[%(asctime)s] [%(processName)s] [%(levelname)s] %(message)s")
+    formatter = logging.Formatter(
+        "[%(asctime)s] [%(processName)s] [%(levelname)s] %(message)s"
+    )
     # console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
@@ -38,7 +44,7 @@ def setup_main_logger(log_path: Path, log_queue: mp.Queue, overwrite=True):
     queue_handler = QueueHandler(log_queue)
     logger.addHandler(queue_handler)
     listener.start()
-    return logger
+    return logger, listener
 
 
 class Pipeline:
@@ -54,20 +60,36 @@ class Pipeline:
     上下文中，供后续使用。如果输出中有上下文中已经存在的键，则会覆盖原有的值。
         最后，Pipeline会返回一个字典，其中包含了输出键值对。
     """
-    def __init__(self, steps: List[Step], input_keys: OptionalKey = None, output_keys: OptionalKey = None):
+
+    def __init__(
+        self,
+        steps: List[Step],
+        input_keys: OptionalKey = None,
+        output_keys: OptionalKey = None,
+    ):
         self.steps = steps
-        self.input_keys = input_keys if input_keys is not None else [DefaultKeys.I_STI_PATH]
-        self.output_keys = output_keys if output_keys is not None else [DefaultKeys.RETURN_CODE]
+        self.input_keys = (
+            input_keys if input_keys is not None else [DefaultKeys.I_STI_PATH]
+        )
+        self.output_keys = (
+            output_keys if output_keys is not None else [DefaultKeys.RETURN_CODE]
+        )
         self.context: Dict[str, Any] = {}
 
     def __call__(self, init_data: Any, logger: Logger):
         self.context.clear()
         self.context[self.input_keys[0]] = init_data
         if DefaultKeys.RETURN_CODE not in self.output_keys:
-            self.output_keys.append(DefaultKeys.RETURN_CODE)  # 确保OUTPUT_STATUS在输出key中
+            self.output_keys.append(
+                DefaultKeys.RETURN_CODE
+            )  # 确保OUTPUT_STATUS在输出key中
         for index, step in enumerate(self.steps):
-            logger.info(f"Running step {step.__class__.__name__} ({index+1}/{len(self.steps)})")
-            input_data: Dict[str, Any] = {key: self.context.get(key, None) for key in step.input_keys}
+            logger.info(
+                f"Running step {step.__class__.__name__} ({index+1}/{len(self.steps)})"
+            )
+            input_data: Dict[str, Any] = {
+                key: self.context.get(key, None) for key in step.input_keys
+            }
             output_data = step(input_data, logger)
             if isinstance(output_data, GC):
                 for key in output_data.keys():
@@ -87,7 +109,7 @@ class PipelineRunner:
         output_queue: mp.Queue,
         log_queue: mp.Queue,
         counter,
-        lock
+        lock,
     ):
         self.pipeline = pipeline
         self.input_queue = input_queue
@@ -116,7 +138,13 @@ class PipelineRunner:
 
 
 class GlobDataloader:
-    def __init__(self, input_dir: Path, subfolder_pattern: str, filename_pattern: str, skip: int = 0):
+    def __init__(
+        self,
+        input_dir: Path,
+        subfolder_pattern: str,
+        filename_pattern: str,
+        skip: int = 0,
+    ):
         """
         根据指定的 subfolder_pattern 和 filename_pattern 来加载数据文件，是一个生成器
         :param input_dir: 输入文件目录
@@ -149,6 +177,7 @@ class PipelineConfig:
     log_path: Path
     overwrite_log: bool
 
+
 @dataclass
 class ExecutionConfig:
     dataloader: GlobDataloader
@@ -160,21 +189,23 @@ def start(pipeline_config: PipelineConfig, executions: list["ExecutionConfig"]):
     """
     启动一个多进程的 pipeline 处理流程
     """
-    if sys.platform == 'win32':
-        method = 'spawn'
+    if sys.platform == "win32":
+        method = "spawn"
     else:
-        method = 'forkserver'
+        method = "forkserver"
     mp.set_start_method(method, force=True)
 
     log_queue = mp.Queue()
-    logger = setup_main_logger(pipeline_config.log_path, log_queue, pipeline_config.overwrite_log)
-    
+    logger, listener = setup_main_logger(
+        pipeline_config.log_path, log_queue, pipeline_config.overwrite_log
+    )
+
     for idx, execution in enumerate(executions):
-        logger.info(f'Start running pipeline: {idx+1} / {len(executions)}')
+        logger.info(f"Start running pipeline: {idx+1} / {len(executions)}")
         # init variables
         input_queue: mp.Queue[Path | None] = mp.Queue()
         output_queue: mp.Queue = mp.Queue()
-        counter = mp.Value('i', execution.dataloader.skip)
+        counter = mp.Value("i", execution.dataloader.skip)
         lock = mp.Lock()
         # push files
         for filepath in execution.dataloader:
@@ -184,7 +215,9 @@ def start(pipeline_config: PipelineConfig, executions: list["ExecutionConfig"]):
         # start processes
         processes: list[mp.Process] = []
         for _ in range(execution.num_processes):
-            runner = PipelineRunner(execution.pipeline, input_queue, output_queue, log_queue, counter, lock)
+            runner = PipelineRunner(
+                execution.pipeline, input_queue, output_queue, log_queue, counter, lock
+            )
             process = mp.Process(target=runner)
             process.start()
             logger.info(f"Started worker process {process.pid}")
@@ -209,15 +242,16 @@ def start(pipeline_config: PipelineConfig, executions: list["ExecutionConfig"]):
                 occurred_exception.append(pointer)
         if len(occurred_exception) > 0:
             logger.warning(
-                    f"When running the previous pipeline, exceptions occurred with the following files:\n"
-                    f"{', '.join(map(str, occurred_exception))}"
-                )
+                f"When running the previous pipeline, exceptions occurred with the following files:\n"
+                f"{', '.join(map(str, occurred_exception))}"
+            )
         else:
-            logger.info(f"When running the previous pipeline, no exception occurred.")        
+            logger.info(f"When running the previous pipeline, no exception occurred.")
         # clean up
         input_queue.close()
         input_queue.join_thread()
         output_queue.close()
         output_queue.join_thread()
+    listener.stop()
     log_queue.close()
     log_queue.join_thread()

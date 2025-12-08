@@ -76,10 +76,15 @@ class DefaultKeys(StrEnum):
     """滤波后的数据"""
     ENVELOPE_DATA = "envelope_data"
     """语音包络"""
+    MEL_DATA = "mel_data"
+    """梅尔谱图"""
+    MEL_SR = "mel_sr"
+    """梅尔谱图的采样率"""
     RESAMPLED_DATA = "resampled_data"
     """重采样后的数据"""
     RETURN_CODE = "return_code"
     """在context中，输出结果的状态（成功与否）"""
+
 
 Key = List[str]
 OptionalKey = Optional[List[str]]

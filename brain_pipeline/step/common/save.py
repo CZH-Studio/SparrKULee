@@ -11,7 +11,7 @@ from brain_pipeline import Key, DefaultKeys
 
 
 class FilepathFn:
-    def __init__(self, target_root_dir: Path, mode: str = 'eeg'):
+    def __init__(self, target_root_dir: Path, mode: str = "eeg"):
         """
         在保存时，根据输入的路径生成目标路径
         在context中，源文件的路径key在前面放置，目标文件的路径key在后面放置
@@ -25,7 +25,9 @@ class FilepathFn:
             "eeg": self.eeg,
             "stimulus": self.stimulus,
         }
-        self.fn: Callable[[List[str], Dict[str, Any]], Dict[str, Path]] | None = self.fn_map.get(self.mode)
+        self.fn: Callable[[List[str], Dict[str, Any]], Dict[str, Path]] | None = (
+            self.fn_map.get(self.mode)
+        )
         if self.fn is None:
             raise KeyError(f"Unsupported mode: {self.mode}")
 
@@ -48,7 +50,13 @@ class FilepathFn:
         stimuli_name = o_stimuli_path.stem.split(".")[0].replace("_", "-")
         ret = {}
         for key in input_keys[2:]:
-            target_file_path = self.target_root_dir / "eeg" / subject / f"{session}_{task}_{run}" / f"{subject}_{session}_{task}_{run}_{stimuli_name}_{key}.pt"
+            target_file_path = (
+                self.target_root_dir
+                / "eeg"
+                / subject
+                / f"{session}_{task}_{run}"
+                / f"{subject}_{session}_{task}_{run}_{stimuli_name}_{key}.pt"
+            )
             ret[key] = target_file_path
         return ret
 
@@ -63,26 +71,29 @@ class FilepathFn:
         stimuli_name = o_stimuli_path.stem.split(".")[0].replace("_", "-")
         ret = {}
         for key in input_keys[1:]:
-            target_file_path = self.target_root_dir / "stimuli" / stimuli_name / f"{stimuli_name}_{key}.pt"
+            target_file_path = (
+                self.target_root_dir
+                / "stimuli"
+                / stimuli_name
+                / f"{stimuli_name}_{key}.pt"
+            )
             ret[key] = target_file_path
         return ret
 
 
 class Save(Step):
-    def __init__(self, input_keys: Key, filepath_fn: FilepathFn, ext: str = '.pt'):
+    def __init__(
+        self, input_keys: Key, filepath_fn: FilepathFn, ext: str = ".pt", overrite=True
+    ):
         """
         :param input_keys: recommended
         :param target_filepath_function: 用于生成目标路径的函数
         """
-        super().__init__(
-            input_keys,
-            [],
-            None,
-            [DefaultKeys.RETURN_CODE]
-        )
-        self.assert_keys_num('>', 0, '==', 1)
+        super().__init__(input_keys, [], None, [DefaultKeys.RETURN_CODE])
+        self.assert_keys_num(">", 0, "==", 1)
         self.target_filepath_function = filepath_fn
         self.ext = ext
+        self.overrite = overrite
 
     def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
         target_file_paths = self.target_filepath_function(self.input_keys, input_data)
@@ -91,16 +102,22 @@ class Save(Step):
             target_file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o777)
             if self.ext:
                 target_file_path = target_file_path.with_suffix(self.ext)
-            if self.ext == '.pt':
-                fd = os.open(target_file_path, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o777)
-                with os.fdopen(fd, 'wb') as f:
+            if target_file_path.exists() and not self.overrite:
+                logger.info(f"{target_file_path} exists, will not overrite.")
+            if self.ext == ".pt":
+                fd = os.open(
+                    target_file_path, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o777
+                )
+                with os.fdopen(fd, "wb") as f:
                     torch.save(torch.from_numpy(data), f)
-            elif self.ext == '.npy':
+            elif self.ext == ".npy":
                 np.save(target_file_path, data)
             else:
                 logger.warning(f"Unsupported extension: {self.ext}, default to .pt.")
-                fd = os.open(target_file_path, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o777)
-                with os.fdopen(fd, 'wb') as f:
+                fd = os.open(
+                    target_file_path, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o777
+                )
+                with os.fdopen(fd, "wb") as f:
                     torch.save(torch.from_numpy(data), f)
 
         return {self.output_keys[0]: "success"}
