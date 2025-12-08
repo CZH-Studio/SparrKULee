@@ -5,3 +5,4 @@ brian2hears
 scipy
 torch
 lightning
+tensorboard

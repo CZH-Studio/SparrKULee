@@ -155,13 +155,16 @@ class CLIPClsModel(MatchMismatchModel):
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
-        eeg, speech = x
+        eeg, *speech = x
         # eeg: (B, T, C)
-        # speech: (B, num_classes, T, C)
-        B, num_classes, T, C = speech.shape
-        speech = speech.reshape(B * num_classes, T, C)  # (B*num_classes, T, C)
+        # speech: [(B, num_classes, T, C), ...]
+        speech_concat = torch.cat(speech, dim=-1)
+        B, num_classes, T, C = speech_concat.shape
+        speech_concat = speech_concat.reshape(
+            B * num_classes, T, C
+        )  # (B*num_classes, T, C)
         eeg_features = self.eeg_encoder(eeg)
-        speech_features = self.speech_encoder(speech)
+        speech_features = self.speech_encoder(speech_concat)
         # flatten to get embeddings
         eeg_features = torch.flatten(eeg_features, start_dim=1)
         speech_features = torch.flatten(speech_features, start_dim=1)
@@ -190,11 +193,12 @@ class CLIPModel(ContrastLearningModel):
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
     def forward(self, x: list[torch.Tensor]):
-        eeg, speech = x
+        eeg, *speech = x
         # eeg: (B, T, C)
-        # speech: (B, T, C)
+        # speech: [(B, T, C1), ...]
         eeg_features = self.eeg_encoder(eeg)
-        speech_features = self.speech_encoder(speech)
+        speech_concat = torch.cat(speech, dim=-1)
+        speech_features = self.speech_encoder(speech_concat)
         # flatten to get embeddings
         eeg_features = torch.flatten(eeg_features, start_dim=1)
         speech_features = torch.flatten(speech_features, start_dim=1)
@@ -204,3 +208,101 @@ class CLIPModel(ContrastLearningModel):
         # compute loss
         logits = (speech_features @ eeg_features.T) * torch.exp(self.temperature)
         return logits  # (B, B)
+
+
+class MoCoModel(ContrastLearningModel):
+    def __init__(self, **kwargs):
+        super().__init__()
+
+        self.temperature = nn.Parameter(torch.tensor(kwargs.get("temperature", 0.07)))
+        # encoders
+        self.eeg_encoder = EEGEncoder(**kwargs["eeg_encoder"])
+        self.speech_encoder = SpeechEncoder(**kwargs["speech_encoder"])
+        # momentum encoders
+        self.eeg_encoder_m = EEGEncoder(**kwargs["eeg_encoder"])
+        self.speech_encoder_m = SpeechEncoder(**kwargs["speech_encoder"])
+
+        # 不参与梯度
+        for p in self.eeg_encoder_m.parameters():
+            p.requires_grad = False
+        for p in self.speech_encoder_m.parameters():
+            p.requires_grad = False
+
+        # queue
+        self.K = kwargs.get("queue_size", 65536)
+        dim = kwargs.get("proj_dim", 256)
+        self.register_buffer("queue", torch.randn(dim, self.K))
+        self.queue = F.normalize(self.queue, dim=0)
+        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+
+        self.momentum = kwargs.get("momentum", 0.999)
+
+    @torch.no_grad()
+    def _momentum_update(self):
+        """Update momentum encoder."""
+        for param_q, param_k in zip(
+            self.eeg_encoder.parameters(), self.eeg_encoder_m.parameters()
+        ):
+            param_k.data = param_k.data * self.momentum + param_q.data * (
+                1 - self.momentum
+            )
+
+        for param_q, param_k in zip(
+            self.speech_encoder.parameters(), self.speech_encoder_m.parameters()
+        ):
+            param_k.data = param_k.data * self.momentum + param_q.data * (
+                1 - self.momentum
+            )
+
+    @torch.no_grad()
+    def _dequeue_and_enqueue(self, keys):
+        batch_size = keys.shape[0]
+        ptr = int(self.queue_ptr)
+        self.queue[:, ptr : ptr + batch_size] = keys.T
+        ptr = (ptr + batch_size) % self.K
+        self.queue_ptr[0] = ptr
+
+    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+        eeg, *speech = x
+        speech = torch.cat(speech, dim=-1)
+
+        # ---------------------------
+        # 1. Compute query features
+        # ---------------------------
+        q_eeg = F.normalize(self.eeg_encoder(eeg).flatten(1), dim=1)
+        q_speech = F.normalize(self.speech_encoder(speech).flatten(1), dim=1)
+        q = q_speech @ q_eeg.T  # (B, B)
+
+        # ---------------------------
+        # 2. Compute momentum keys (no grad)
+        # ---------------------------
+        with torch.no_grad():
+            self._momentum_update()
+
+            k_eeg = F.normalize(self.eeg_encoder_m(eeg).flatten(1), dim=1)
+            k_speech = F.normalize(self.speech_encoder_m(speech).flatten(1), dim=1)
+            k = k_speech @ k_eeg.T  # (B, B)
+
+            # enqueue keys
+            self._dequeue_and_enqueue(k_speech)
+
+        # ---------------------------
+        # 3. Compute logits (with queue)
+        # ---------------------------
+        # positive: diagonal of q (B,)
+        l_pos = torch.diag(q).unsqueeze(1)  # (B, 1)
+
+        # negative: q features with queue
+        l_neg = q_speech @ self.queue  # (B, K)
+
+        # logits concat
+        logits = torch.cat([l_pos, l_neg], dim=1)
+        logits /= torch.exp(self.temperature)
+
+        return logits
+
+    def compute_loss(self, logits: torch.Tensor) -> torch.Tensor:
+        B = logits.size(0)
+        labels = torch.zeros(B, dtype=torch.long, device=logits.device)
+        loss = F.cross_entropy(logits, labels)
+        return loss

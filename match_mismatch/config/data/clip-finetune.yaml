@@ -1,13 +1,16 @@
-root_dir: /hdd/EEG/Audio/SparrKULee/derivatives/official_split
+root_dir: /hdd/EEG/Audio/SparrKULee/derivatives/preprocessed/split
 window_size: 5.0
 shift_size: 1.0
 min_spacing: 6.0
 num_classes: 5
 features:
-  - name: eeg
+  - name: eeg-64-board-band
     sr: 64
     is_stimuli: false
-  - name: envelope
+  - name: envelope-64-board-band
+    sr: 64
+    is_stimuli: true
+  - name: mel-64
     sr: 64
     is_stimuli: true
 seed: 42

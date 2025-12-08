@@ -31,7 +31,7 @@ class ContrastLearningModel(nn.Module, ABC):
         B = logits.shape[0]
         labels = torch.arange(B, device=logits.device)
         loss_a = F.cross_entropy(logits, labels)
-        loss_b = F.cross_entropy(logits.T, labels.T)
+        loss_b = F.cross_entropy(logits.transpose(0, 1), labels)
         loss = (loss_a + loss_b) / 2
         return loss
 

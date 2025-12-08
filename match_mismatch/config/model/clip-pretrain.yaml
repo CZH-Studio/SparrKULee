@@ -1,5 +1,5 @@
 name: clip-pretrain
-class: clip.CLIPStandardModel
+class: clip.CLIPModel
 params:
   temperature: 0.075
   eeg_encoder:
@@ -18,7 +18,7 @@ params:
       dropout: 0.5
       activation: "gelu"
   speech_encoder:
-    input_dim: 1
+    input_dim: 29
     hidden_dim: 64
     output_dim: 8
     window_size: 320
