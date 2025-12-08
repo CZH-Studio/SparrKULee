@@ -1,0 +1,7 @@
+numpy
+librosa
+brian2
+brian2hears
+scipy
+torch
+lightning
