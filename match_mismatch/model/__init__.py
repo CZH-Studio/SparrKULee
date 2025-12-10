@@ -9,7 +9,7 @@ import lightning.pytorch as pl
 import importlib
 
 from datautils.dataloader import get_labels, get_dataloader_by_config
-from datautils import Feature
+from datautils import Features
 
 
 class MatchMismatchModel(nn.Module, ABC):
@@ -272,16 +272,8 @@ class LitMatchMismatchModule(pl.LightningModule):
         return ret
 
 
-def get_features(data_config: dict) -> list[Feature]:
-    return [
-        Feature(
-            name=f["name"],
-            sr=f["sr"],
-            is_stimuli=f["is_stimuli"],
-            random_strategy=f.get("random_strategy", "random"),
-        )
-        for f in data_config["features"]
-    ]
+def get_features(data_config: dict) -> Features:
+    return Features(**data_config["features"])
 
 
 def get_model_class(

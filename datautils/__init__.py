@@ -1,20 +1,31 @@
-from typing import Literal
-from dataclasses import dataclass
+from typing import Iterator, Literal
+from collections import namedtuple
 
 Number = int | float
 T_random_strategy = Literal["random", "lr", "rl", "random_lr"]
+Feature = namedtuple("Feature", ["name", "sr", "is_stimuli"])
+Feature.__annotations__ = {"name": str, "sr": int, "is_stimuli": bool}
 
 
-@dataclass
-class Feature:
-    name: str
-    """特征名"""
-    sr: int
-    """采样率"""
-    is_stimuli: bool
-    """是否为刺激段"""
-    random_strategy: T_random_strategy
-    """当采样多个刺激段时的随机策略"""
+class Features:
+    def __init__(self, **kwargs) -> None:
+        self.random_strategy: T_random_strategy = kwargs.get(
+            "random_strategy", "random"
+        )
+        """当采样多个刺激段时的随机策略"""
+        self.items: list[Feature] = []
+        """内容，分别为：特征名、采样率、是否为刺激"""
+        for item in kwargs.get("items", []):
+            self.items.append(Feature(item["name"], item["sr"], item["is_stimuli"]))
+
+    def __getitem__(self, index: int) -> Feature:
+        return self.items[index]
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+    def __iter__(self) -> Iterator[Feature]:
+        return iter(self.items)
 
 
 CHANNELS = [

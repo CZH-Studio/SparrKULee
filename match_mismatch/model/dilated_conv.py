@@ -33,10 +33,10 @@ class DilatedConvModel(MatchMismatchModel):
 
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
         eeg, *speech = x
-        speech = torch.cat(speech, dim=-1)  # concat all speech features
+        speech = torch.cat(speech, dim=-1).contiguous()  # concat all speech features
         # eeg: (B, T, C), envelope: (B, num_classes, T, 1)
         eeg = eeg.permute(0, 2, 1)  # (B, C, T)
-        eeg = self.conv_eeg(eeg)  # (B, 8, T)
+        eeg = self.conv_eeg(eeg)  # (B, 16, T)
         eeg = self.conv_shared(eeg)
 
         # envelope: (B, num_classes, T, 1)

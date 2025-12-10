@@ -4,20 +4,20 @@ shift_size: 1.0
 min_spacing: 6.0
 num_classes: 5
 features:
-  - name: eeg-64-board-band
-    sr: 64
-    is_stimuli: false
-  - name: envelope-64-board-band
-    sr: 64
-    is_stimuli: true
-    random_strategy: random
-  - name: eeg-512-low-gamma
-    sr: 512
-    is_stimuli: false
-  - name: envelope-512-board-band
-    sr: 512
-    is_stimuli: true
-    random_strategy: random
+  random_strategy: random
+  items:
+    - name: eeg-64-board-band
+      sr: 64
+      is_stimuli: false
+    - name: envelope-64-board-band
+      sr: 64
+      is_stimuli: true
+    - name: eeg-512-low-gamma
+      sr: 512
+      is_stimuli: false
+    - name: envelope-512-board-band
+      sr: 512
+      is_stimuli: true
 seed: 42
 batch_size: 256
 splits:

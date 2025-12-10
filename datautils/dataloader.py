@@ -4,7 +4,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from . import Number, Feature
+from . import Number, Features
 from .dataset import SparrKULeeDataset, SparrKULeeSampler, collate_fn_stack
 
 
@@ -37,7 +37,7 @@ def get_dataloader(
     num_records: Number,
     random_records: bool,
     num_classes: int,
-    features: list[Feature],
+    features: Features,
     shuffle: bool,
     seed: int,
     batch_size: int,
@@ -69,7 +69,7 @@ def get_dataloader(
 
 
 def get_labels(
-    features: list[Feature], num_classes: int, batch: list[torch.Tensor]
+    features: Features, num_classes: int, batch: list[torch.Tensor]
 ) -> tuple[list[torch.Tensor], torch.Tensor]:
     """ """
     batch_size = batch[0].shape[0]
@@ -81,7 +81,7 @@ def get_labels(
             tmp = data[batch_indices, 0].clone()
             data[batch_indices, 0] = data[batch_indices, labels]
             data[batch_indices, labels] = tmp
-            batch[i] = data
+            batch[i] = data.contiguous()
     return batch, labels
 
 
@@ -91,15 +91,7 @@ def get_dataloader_by_config(split: str, **kwargs):
     shift_size = kwargs["shift_size"]
     min_spacing = kwargs["min_spacing"]
     num_classes = kwargs["num_classes"]
-    features = [
-        Feature(
-            name=f["name"],
-            sr=f["sr"],
-            is_stimuli=f["is_stimuli"],
-            random_strategy=f.get("random_strategy", "random"),
-        )
-        for f in kwargs["features"]
-    ]
+    features = Features(**kwargs["features"])
     seed = kwargs["seed"]
     batch_size = kwargs["batch_size"]
     split_kwargs = kwargs["splits"][split]
