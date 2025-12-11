@@ -21,135 +21,6 @@ class MatchMismatchModel(nn.Module, ABC):
         raise NotImplementedError()
 
 
-class ContrastLearningModel(nn.Module, ABC):
-    def __init__(self, **kwargs) -> None:
-        super().__init__()
-
-    def compute_loss(self, logits: torch.Tensor) -> torch.Tensor:
-        # this function implements the standard cross-entropy loss for CLIP
-        # you can customize this function to use other loss functions
-        B = logits.shape[0]
-        labels = torch.arange(B, device=logits.device)
-        loss_a = F.cross_entropy(logits, labels)
-        loss_b = F.cross_entropy(logits.transpose(0, 1), labels)
-        loss = (loss_a + loss_b) / 2
-        return loss
-
-    @abstractmethod
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
-        raise NotImplementedError()
-
-
-class LitContrastLearningModule(pl.LightningModule):
-    def __init__(
-        self,
-        data_config: dict,
-        model: ContrastLearningModel,
-        optimizer_config: dict,
-        scheduler_config: dict,
-    ) -> None:
-        super().__init__()
-        self.data_config = data_config
-        self.batch_size = data_config["batch_size"]
-        self.features = get_features(data_config)
-        self.optimizer_config = optimizer_config
-        self.scheduler_config = scheduler_config
-        self.save_hyperparameters(ignore=["model", "features", "batch_size"])
-        self.model = model
-
-    def train_dataloader(self):
-        return get_dataloader_by_config(
-            "train",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def val_dataloader(self):
-        return get_dataloader_by_config(
-            "val",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def test_dataloader(self):
-        return get_dataloader_by_config(
-            "test",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def forward(self, x: list[torch.Tensor]):
-        return self.model(x)
-
-    def _compute(self, batch_data) -> torch.Tensor:
-        # in contrast learning, accuracy is not as important as loss, so we don't compute accuracy here
-        out = self(batch_data)
-        loss = self.model.compute_loss(out)
-        return loss
-
-    def training_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss = self._compute(batch_data)
-        self.log(
-            "train_loss",
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        return loss
-
-    def validation_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss = self._compute(batch_data)
-        self.log(
-            "val_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            sync_dist=True,
-        )
-        return loss
-
-    def test_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss = self._compute(batch_data)
-        self.log(
-            "test_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        return loss
-
-    def configure_optimizers(self):  # type: ignore
-        optimizer: torch.optim.Optimizer = getattr(
-            torch.optim, self.optimizer_config["name"]
-        )(self.parameters(), **self.optimizer_config["params"])
-        scheduler: torch.optim.lr_scheduler._LRScheduler = getattr(
-            torch.optim.lr_scheduler, self.scheduler_config["name"]
-        )(optimizer, **self.scheduler_config["params"])
-        ret = {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss",
-                "interval": "epoch",
-                "frequency": 1,
-            },
-        }
-        return ret
-
-
 class LitMatchMismatchModule(pl.LightningModule):
     def __init__(
         self,
@@ -251,6 +122,138 @@ class LitMatchMismatchModule(pl.LightningModule):
             sync_dist=True,
         )
         self.log("test_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+    def configure_optimizers(self):  # type: ignore
+        optimizer: torch.optim.Optimizer = getattr(
+            torch.optim, self.optimizer_config["name"]
+        )(self.parameters(), **self.optimizer_config["params"])
+        scheduler: torch.optim.lr_scheduler._LRScheduler = getattr(
+            torch.optim.lr_scheduler, self.scheduler_config["name"]
+        )(optimizer, **self.scheduler_config["params"])
+        ret = {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "val_loss",
+                "interval": "epoch",
+                "frequency": 1,
+            },
+        }
+        return ret
+
+
+class ContrastLearningModel(nn.Module, ABC):
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+
+    def compute_loss(self, logits: torch.Tensor) -> torch.Tensor:
+        # this function implements the standard cross-entropy loss for CLIP
+        # you can customize this function to use other loss functions
+        B = logits.shape[0]
+        labels = torch.arange(B, device=logits.device)
+        loss_a = F.cross_entropy(logits, labels)
+        loss_b = F.cross_entropy(logits.transpose(0, 1), labels)
+        loss = (loss_a + loss_b) / 2
+        return loss
+
+    @abstractmethod
+    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+        raise NotImplementedError()
+
+
+class LitContrastLearningModule(pl.LightningModule):
+    def __init__(
+        self,
+        data_config: dict,
+        model: ContrastLearningModel,
+        optimizer_config: dict,
+        scheduler_config: dict,
+    ) -> None:
+        super().__init__()
+        self.data_config = data_config
+        # in contrast learning, all features should be set to is_stimuli=False
+        for i in range(len(self.data_config["features"]["items"])):
+            self.data_config["features"]["items"][i]["is_stimuli"] = False
+        self.batch_size = self.data_config["batch_size"]
+        self.features = get_features(self.data_config)
+        self.optimizer_config = optimizer_config
+        self.scheduler_config = scheduler_config
+        self.save_hyperparameters(ignore=["model", "features", "batch_size"])
+        self.model = model
+
+    def train_dataloader(self):
+        return get_dataloader_by_config(
+            "train",
+            **self.data_config,
+            num_replicas=self.trainer.world_size,
+            rank=self.trainer.global_rank,
+        )
+
+    def val_dataloader(self):
+        return get_dataloader_by_config(
+            "val",
+            **self.data_config,
+            num_replicas=self.trainer.world_size,
+            rank=self.trainer.global_rank,
+        )
+
+    def test_dataloader(self):
+        return get_dataloader_by_config(
+            "test",
+            **self.data_config,
+            num_replicas=self.trainer.world_size,
+            rank=self.trainer.global_rank,
+        )
+
+    def forward(self, x: list[torch.Tensor]):
+        return self.model(x)
+
+    def _compute(self, batch_data) -> torch.Tensor:
+        # in contrast learning, accuracy is not as important as loss, so we don't compute accuracy here
+        out = self(batch_data)
+        loss = self.model.compute_loss(out)
+        return loss
+
+    def training_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss = self._compute(batch_data)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        return loss
+
+    def validation_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss = self._compute(batch_data)
+        self.log(
+            "val_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            sync_dist=True,
+        )
+        return loss
+
+    def test_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss = self._compute(batch_data)
+        self.log(
+            "test_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
         return loss
 
     def configure_optimizers(self):  # type: ignore

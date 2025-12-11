@@ -1,0 +1,29 @@
+name: cl-moco
+class: cl.MoCoModel
+params:
+  temperature: 0.075
+  eeg_encoder:
+    input_dim: 64
+    hidden_dim: 64
+    output_dim: 8
+    window_size: 320
+    num_layers: 1
+    conv_block:
+      kernel_size: 64
+      dilation: 1
+      dropout: 0.2
+    transformer:
+      nhead: 8
+      dim_feedforward: 256
+      dropout: 0.5
+      activation: "gelu"
+  speech_encoder:
+    input_dim: 29
+    hidden_dim: 64
+    output_dim: 8
+    window_size: 320
+    num_layers: 1
+    conv_block:
+      kernel_size: 64
+      dilation: 1
+      dropout: 0.2

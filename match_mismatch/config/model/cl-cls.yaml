@@ -1,7 +1,6 @@
-name: clip-pretrain
-class: clip.CLIPModel
+name: cl-cls
+class: cl.CLClsModel
 params:
-  temperature: 0.075
   eeg_encoder:
     input_dim: 64
     hidden_dim: 64
@@ -27,3 +26,4 @@ params:
       kernel_size: 64
       dilation: 1
       dropout: 0.2
+

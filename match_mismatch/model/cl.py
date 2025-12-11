@@ -145,7 +145,7 @@ class SpeechEncoder(nn.Module):
         return x  # (B, T, output_dim)
 
 
-class CLIPClsModel(MatchMismatchModel):
+class CLClsModel(MatchMismatchModel):
     def __init__(self, **kwargs) -> None:
         super().__init__()
         self.eeg_encoder_kwargs = kwargs["eeg_encoder"]

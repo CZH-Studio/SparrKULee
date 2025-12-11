@@ -1,6 +1,7 @@
-name: clip-finetune
-class: clip.CLIPClsModel
+name: cl-clip
+class: cl.CLIPModel
 params:
+  temperature: 0.075
   eeg_encoder:
     input_dim: 64
     hidden_dim: 64
@@ -26,4 +27,3 @@ params:
       kernel_size: 64
       dilation: 1
       dropout: 0.2
-
