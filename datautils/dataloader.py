@@ -29,7 +29,7 @@ def _parse_subjects(selected_subjects: str) -> list[int]:
 
 def get_dataloader(
     root_dir: Path,
-    split: str,
+    split_dirs: list[str],
     window_size: Number,
     shift_size: Number,
     min_spacing: Number,
@@ -46,7 +46,7 @@ def get_dataloader(
 ):
     dataset = SparrKULeeDataset(
         root_dir,
-        split,
+        split_dirs,
         window_size,
         shift_size,
         min_spacing,
@@ -95,6 +95,7 @@ def get_dataloader_by_config(split: str, **kwargs):
     seed = kwargs["seed"]
     batch_size = kwargs["batch_size"]
     split_kwargs = kwargs["splits"][split]
+    split_dirs: list[str] = split_kwargs.get("dirs", [split])
     subjects = _parse_subjects(split_kwargs["subjects"])
     num_records = split_kwargs["num_records"]
     random_records = split_kwargs["random_records"]
@@ -103,7 +104,7 @@ def get_dataloader_by_config(split: str, **kwargs):
     rank = kwargs["rank"]
     return get_dataloader(
         root_dir,
-        split,
+        split_dirs,
         window_size,
         shift_size,
         min_spacing,

@@ -2,13 +2,13 @@
 Copy parameters from one model to another.
 Example usage:
 python -m match_mismatch.copy_params \
-    --src_data clip-pretrain \
-    --dst_data clip-finetune \
-    --src_model clip-pretrain \
-    --dst_model clip-finetune \
+    --src_data cl \
+    --dst_data cl \
+    --src_model clip \
+    --dst_model cl-cls \
     --copy eeg_encoder,speech_encoder \
-    --src_ckpt clip-pretrain_seed=1 \
-    --dst_ckpt clip-finetune_seed=1
+    --src_ckpt clip_seed=1 \
+    --dst_ckpt clip-cls_seed=1
 """
 
 from pathlib import Path

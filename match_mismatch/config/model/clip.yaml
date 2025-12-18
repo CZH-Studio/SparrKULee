@@ -8,7 +8,7 @@ params:
     output_channels: 8
     embedding_dim: 256
     window_size: 320
-    num_layers: 1
+    num_layers: 10
     conv_block:
       kernel_size: 64
       dilation: 1
@@ -24,7 +24,7 @@ params:
     output_channels: 8
     embedding_dim: 256
     window_size: 320
-    num_layers: 1
+    num_layers: 10
     conv_block:
       kernel_size: 64
       dilation: 1

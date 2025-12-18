@@ -22,7 +22,7 @@ features:
       sr: 64
       is_stimuli: true
 seed: 42
-batch_size: 256
+batch_size: 128
 splits:
   train:
     subjects: 1-71
@@ -36,6 +36,7 @@ splits:
     shuffle: false
   test:
     subjects: 72-85
+    dirs: [train, val, test]
     num_records: 1.0
     random_records: false
     shuffle: false

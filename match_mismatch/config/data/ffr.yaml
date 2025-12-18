@@ -33,6 +33,7 @@ splits:
     shuffle: false
   test:
     subjects: 72-85
+    dirs: [train, val, test]
     num_records: 1.0
     random_records: false
     shuffle: false

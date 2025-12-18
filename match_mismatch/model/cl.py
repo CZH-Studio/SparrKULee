@@ -26,6 +26,7 @@ class ConvBlock(nn.Module):
             self.dilation,
         )
         self.dropout = nn.Dropout(self.dropout)
+        # consider batchnorm here?
         self.normalization = nn.LayerNorm([self.out_channels, self.window_size])
         self.activation = nn.GELU()
 

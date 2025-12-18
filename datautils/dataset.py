@@ -55,7 +55,7 @@ class SparrKULeeDataset(Dataset):
     def __init__(
         self,
         root_dir: Path,
-        split: str,
+        split_dirs: list[str],
         window_size: Number,
         shift_size: Number,
         min_spacing: Number,
@@ -69,7 +69,7 @@ class SparrKULeeDataset(Dataset):
 
         Args:
             root_dir (Path): 切割后的数据集根目录
-            split (str): 切割名称
+            split_dirs: list[str]: 使用的分割文件夹列表
             window_size (Real): 窗时间（秒）
             shift_size (Real): 窗口前进时间（秒）
             min_spacing (Real): 在分类时，两个窗的最小起始时间间隔（秒）
@@ -80,7 +80,9 @@ class SparrKULeeDataset(Dataset):
             features (list[Feature]): 选择的特征信息列表
         """
         super().__init__()
-        self.root_dir = root_dir / split  # 将root_dir更新为当前分割
+        self.root_dirs = [
+            root_dir / split_dir for split_dir in split_dirs
+        ]  # 将root_dir更新为当前分割
         self.window_size = window_size
         self.shift_size = shift_size
         self.min_spacing_windows = int(min_spacing / shift_size)
@@ -96,56 +98,63 @@ class SparrKULeeDataset(Dataset):
         self.cache = LRUCache(features)
 
         num_windows_list: list[int] = []
-        for subject in self.subjects:
-            subject_dir = self.root_dir / f"sub-{subject:03d}"
-            # 判断被试文件夹是否存在
-            if not subject_dir.exists():
-                logger.info(f"{subject_dir} is not exists.")
-                continue
-            record_dirs = self._select_record(subject_dir)
-            for record_dir in record_dirs:
-                feature_mapping = {
-                    p.stem.split("_")[-1]: p
-                    for p in record_dir.iterdir()
-                    if p.is_file()
-                }
-                # 判断当前记录中是否有所有的特征文件
-                if not all(f.name in feature_mapping for f in self.features):
-                    logger.warning(f"{record_dir} is invalid!")
+        for root_dir in self.root_dirs:
+            for subject in self.subjects:
+                subject_dir = root_dir / f"sub-{subject:03d}"
+                # 判断被试文件夹是否存在
+                if not subject_dir.exists():
+                    logger.info(f"{subject_dir} is not exists.")
                     continue
-                # 读取每个特征文件，获取每一个特征数据的时长
-                feature_sizes = np.array(
-                    [
-                        torch.load(feature_mapping[f.name], weights_only=True).shape[0]
-                        / f.sr
-                        for f in self.features
-                    ]
-                )
-                # 判断所有特征的时长是否一致
-                if not np.allclose(feature_sizes, feature_sizes[0], atol=0.5):
-                    logger.warning(
-                        f"Feature lengths in {record_dir} are not consistent, passing."
-                        f"Min: {feature_sizes.min():.2f}s, Max: {feature_sizes.max():.2f}s"
+                record_dirs = self._select_record(subject_dir)
+                for record_dir in record_dirs:
+                    feature_mapping = {
+                        p.stem.split("_")[-1]: p
+                        for p in record_dir.iterdir()
+                        if p.is_file()
+                    }
+                    # 判断当前记录中是否有所有的特征文件
+                    if not all(f.name in feature_mapping for f in self.features):
+                        logger.warning(f"{record_dir} is invalid!")
+                        continue
+                    # 读取每个特征文件，获取每一个特征数据的时长
+                    feature_sizes = np.array(
+                        [
+                            torch.load(
+                                feature_mapping[f.name], weights_only=True
+                            ).shape[0]
+                            / f.sr
+                            for f in self.features
+                        ]
                     )
-                    continue
-                # 判断窗口数是否满足采样需求
-                num_windows = int((feature_sizes.min() - window_size) // shift_size + 1)
-                if (
-                    num_windows
-                    < 1 + 2 * (self.min_spacing_windows - 1) + self.num_classes
-                ):
-                    logger.warning(
-                        f"{record_dir} has insufficient windows {num_windows}, passing."
+                    # 判断所有特征的时长是否一致
+                    if not np.allclose(feature_sizes, feature_sizes[0], atol=0.5):
+                        logger.warning(
+                            f"Feature lengths in {record_dir} are not consistent, passing."
+                            f"Min: {feature_sizes.min():.2f}s, Max: {feature_sizes.max():.2f}s"
+                        )
+                        continue
+                    # 判断窗口数是否满足采样需求
+                    num_windows = int(
+                        (feature_sizes.min() - window_size) // shift_size + 1
                     )
-                    continue
-                # 创建索引
-                self.records.append([feature_mapping[f.name] for f in self.features])
-                num_windows_list.append(num_windows)
+                    if (
+                        num_windows
+                        < 1 + 2 * (self.min_spacing_windows - 1) + self.num_classes
+                    ):
+                        logger.warning(
+                            f"{record_dir} has insufficient windows {num_windows}, passing."
+                        )
+                        continue
+                    # 创建索引
+                    self.records.append(
+                        [feature_mapping[f.name] for f in self.features]
+                    )
+                    num_windows_list.append(num_windows)
         # 创建累计和索引
         self.num_windows_list = np.array(num_windows_list)
         self.cumsum = self.num_windows_list.cumsum()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.cumsum[-1]
 
     def __getitem__(self, index) -> list[torch.Tensor]:

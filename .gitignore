@@ -2,7 +2,7 @@
 .vscode/
 .hypothesis/
 **/__pycache__/
-run.sh
+run*.sh
 lightning_logs/
 **/ckpt/
 **/tb_logs/
