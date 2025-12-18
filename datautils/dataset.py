@@ -158,6 +158,9 @@ class SparrKULeeDataset(Dataset):
         return self.cumsum[-1]
 
     def __getitem__(self, index) -> list[torch.Tensor]:
+        """
+        return: [index, data_1, data_2, ...]
+        """
         record_index = int(np.searchsorted(self.cumsum, index + 1, side="left"))
         window_index = index - (
             0 if record_index == 0 else self.cumsum[record_index - 1]
@@ -168,7 +171,7 @@ class SparrKULeeDataset(Dataset):
                 for r in self.records[record_index]
             ]
             self.cache.set(record_index, records)
-        return self._sample(
+        return [torch.tensor(index)] + self._sample(
             self.cache.get(record_index),
             window_index,
         )

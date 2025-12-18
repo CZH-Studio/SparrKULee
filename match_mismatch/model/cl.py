@@ -171,7 +171,7 @@ class CLClsModel(MatchMismatchModel):
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
-        eeg, *speech = x
+        indices, eeg, *speech = x
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C)
         # speech: [(B, num_classes, T, C), ...]
@@ -204,7 +204,7 @@ class CLIPModel(ContrastLearningModel):
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
     def forward(self, x: list[torch.Tensor]):
-        eeg, *speech = x
+        indices, eeg, *speech = x
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C)
         eeg_features = self.eeg_encoder(eeg)  # (B, E)

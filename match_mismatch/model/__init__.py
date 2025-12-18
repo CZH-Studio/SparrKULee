@@ -67,6 +67,7 @@ class LitMatchMismatchModule(pl.LightningModule):
         return self.model(x)
 
     def _compute(self, batch_data) -> tuple[torch.Tensor, float]:
+        _, *batch_data = batch_data  # extract the indices from the batch
         data, label = get_labels(self.features, self.num_classes, batch_data)
         out = self(data)
         loss = self.criterion(out, label)
