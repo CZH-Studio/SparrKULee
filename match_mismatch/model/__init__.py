@@ -144,6 +144,130 @@ class LitMatchMismatchModule(pl.LightningModule):
         return ret
 
 
+class LitMatchMismatchEnsembleModule(pl.LightningModule):
+    def __init__(
+        self,
+        data_config: dict,
+        models: list[MatchMismatchModel],
+        optimizer_config: dict,
+        scheduler_config: dict,
+    ) -> None:
+        super().__init__()
+        self.data_config = data_config
+        self.num_classes = data_config["num_classes"]
+        self.features = get_features(data_config)
+        self.optimizer_config = optimizer_config
+        self.scheduler_config = scheduler_config
+        self.save_hyperparameters(ignore=["model", "features", "num_classes"])
+        self.models = models
+        self.criterion = nn.CrossEntropyLoss()
+
+    def train_dataloader(self):
+        return get_dataloader_by_config(
+            "train",
+            **self.data_config,
+            num_replicas=self.trainer.world_size,
+            rank=self.trainer.global_rank,
+        )
+
+    def val_dataloader(self):
+        return get_dataloader_by_config(
+            "val",
+            **self.data_config,
+            num_replicas=self.trainer.world_size,
+            rank=self.trainer.global_rank,
+        )
+
+    def test_dataloader(self):
+        return get_dataloader_by_config(
+            "test",
+            **self.data_config,
+            num_replicas=self.trainer.world_size,
+            rank=self.trainer.global_rank,
+        )
+
+    def forward(self, data, i):
+        return self.models[i](data)
+
+    def _compute(self, batch_data) -> tuple[torch.Tensor, float]:
+        _, *batch_data = batch_data  # extract the indices from the batch
+        data, label = get_labels(self.features, self.num_classes, batch_data)
+        outs = [self(data, i) for i in range(len(self.models))]
+        out = torch.stack(outs, dim=0).mean(dim=0)
+        loss = self.criterion(out, label)
+        perd = torch.argmax(out, dim=1)
+        total = label.size(0)
+        correct = (perd == label).sum().item()
+        acc = correct / total
+        return loss, acc
+
+    def training_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss, acc = self._compute(batch_data)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        self.log("train_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+    def validation_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss, acc = self._compute(batch_data)
+        self.log(
+            "val_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            sync_dist=True,
+        )
+        self.log("val_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+    def on_validation_epoch_end(self) -> None:
+        val_acc = self.trainer.callback_metrics.get("val_acc", 0)
+        self.print(f"Epoch {self.current_epoch}: val_acc: {val_acc:.2%}")
+
+    def test_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss, acc = self._compute(batch_data)
+        self.log(
+            "test_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        self.log("test_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+    def configure_optimizers(self):  # type: ignore
+        optimizer: torch.optim.Optimizer = getattr(
+            torch.optim, self.optimizer_config["name"]
+        )(self.parameters(), **self.optimizer_config["params"])
+        scheduler: torch.optim.lr_scheduler._LRScheduler = getattr(
+            torch.optim.lr_scheduler, self.scheduler_config["name"]
+        )(optimizer, **self.scheduler_config["params"])
+        ret = {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "val_loss",
+                "interval": "epoch",
+                "frequency": 1,
+            },
+        }
+        return ret
+
+
 class ContrastLearningModel(nn.Module, ABC):
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -329,6 +453,40 @@ def get_litmodule(
                 if k not in banned_keys:
                     setattr(litmodule, k, v)
     return litmodule
+
+
+def get_litensemblemodule(
+    data_config: dict,
+    model_config: dict,
+    trainer_config: dict,
+    ckpt_paths: list[Path],
+) -> LitMatchMismatchEnsembleModule:
+    model = get_model(model_config)
+    optimizer_config = trainer_config["optimizer"]
+    scheduler_config = trainer_config["scheduler"]
+    kwargs = {
+        "data_config": data_config,
+        "model": model,
+        "optimizer_config": optimizer_config,
+        "scheduler_config": scheduler_config,
+    }
+    model_module_mapping = {
+        "MatchMismatchModel": LitMatchMismatchModule,
+        "ContrastLearningModel": LitContrastLearningModule,
+    }
+    model_class = model.__class__.__bases__[0].__name__
+    litmodule_class = model_module_mapping[model_class]
+    models = [
+        litmodule_class.load_from_checkpoint(ckpt_path, **kwargs).model
+        for ckpt_path in ckpt_paths
+    ]
+    litensemblemodel = LitMatchMismatchEnsembleModule(
+        data_config,
+        models=models,
+        optimizer_config=optimizer_config,
+        scheduler_config=scheduler_config,
+    )
+    return litensemblemodel
 
 
 def find_ckpt(ckpt_dir: Path, mode="last"):

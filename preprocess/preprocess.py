@@ -34,25 +34,25 @@ EEG_512_LOW_GAMMA = "eeg-512-low-gamma"
 stimulus_pipeline = Pipeline(
     steps=[
         LoadStimuli(),
-        # GammatoneEnvelope(),
-        # ResamplePoly(
-        #     input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
-        #     output_keys=[ENVELOPE_64_BOARD_BAND],
-        #     target_sr=64,
-        # ),
-        # ResamplePoly(
-        #     input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
-        #     output_keys=[ENVELOPE_512_BOARD_BAND],
-        #     target_sr=512,
-        # ),
-        # Save(
-        #     input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
-        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        # ),
-        # Save(
-        #     input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
-        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        # ),
+        GammatoneEnvelope(),
+        ResamplePoly(
+            input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
+            output_keys=[ENVELOPE_64_BOARD_BAND],
+            target_sr=64,
+        ),
+        ResamplePoly(
+            input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
+            output_keys=[ENVELOPE_512_BOARD_BAND],
+            target_sr=512,
+        ),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
         MelSpectrogram(output_keys=[MEL_64, DefaultKeys.MEL_SR]),
         Save(
             input_keys=[DefaultKeys.I_STI_PATH, MEL_64],
