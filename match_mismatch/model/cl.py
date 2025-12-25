@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from . import MatchMismatchModel, ContrastLearningModel
+from . import MatchMismatchModel, ContrastLearningModel, MemoryBank
 
 
 class ConvBlock(nn.Module):
@@ -11,7 +11,7 @@ class ConvBlock(nn.Module):
         self.in_channels = kwargs["in_channels"]
         self.out_channels = kwargs["out_channels"]
         self.window_size = kwargs["window_size"]
-        self.kernel_size = kwargs.get("kernel_size", 32)
+        self.kernel_size = kwargs.get("kernel_size", 64)
         self.dilation = kwargs.get("dilation", 1)
         self.dropout = kwargs.get("dropout", 0.2)
         self.stride = kwargs.get("stride", 1)
@@ -44,60 +44,56 @@ class EEGEncoder(nn.Module):
         self.input_channels = kwargs.get("input_channels", 64)
         self.hidden_channels = kwargs.get("hidden_channels", 64)
         self.output_channels = kwargs.get("output_channels", 8)
-        self.embedding_dim = kwargs.get("embedding_dim", 256)
         self.window_size = kwargs["window_size"]
         self.num_layers = kwargs.get("num_layers", 1)
         self.conv_block_kwargs = kwargs["conv_block"]
         self.transformer_kwargs = kwargs["transformer"]
 
-        self.channel_mapping = nn.Conv1d(
-            self.input_channels, self.input_channels, kernel_size=1
-        )  # Identity mapping for eeg
+        self.spatial_mapping = nn.Conv1d(
+            self.input_channels, self.hidden_channels, kernel_size=1
+        )
         self.conv_blocks = nn.ModuleList(
             [
-                nn.ModuleList(
-                    [
-                        ConvBlock(
-                            in_channels=self.hidden_channels,
-                            out_channels=self.hidden_channels,
-                            window_size=self.window_size,
-                            **self.conv_block_kwargs,
-                        ),
-                        nn.TransformerEncoderLayer(
-                            self.hidden_channels,
-                            **self.transformer_kwargs,
-                            batch_first=True,
-                        ),
-                    ]
+                ConvBlock(
+                    in_channels=self.hidden_channels,
+                    out_channels=self.hidden_channels,
+                    window_size=self.window_size,
+                    **self.conv_block_kwargs,
                 )
                 for _ in range(self.num_layers)
             ]
         )
-        self.final_layer = nn.Linear(self.hidden_channels, self.output_channels)
-        self.proj_head = nn.Linear(
-            self.output_channels * self.window_size, self.embedding_dim
+        self.transformer_blocks = nn.ModuleList(
+            [
+                nn.TransformerEncoderLayer(
+                    batch_first=True,
+                    **self.transformer_kwargs,
+                )
+                for _ in range(self.num_layers)
+            ]
+        )
+        self.final_layer = nn.Linear(
+            self.transformer_kwargs["d_model"], self.output_channels
         )
 
     def forward(self, x: torch.Tensor):
         # (B, T, C)
         x = x.permute(0, 2, 1)  # (B, C, T)
-        x = self.channel_mapping(x)  # (B, C, T)
-        original_x = x  # (B, C, T)
-        original_x_permuted = x.permute(0, 2, 1)  # (B, T, C)
-        for i, blocks in enumerate(self.conv_blocks):
-            conv_block, transformer_encoder = blocks  # type: ignore
-            x = conv_block(x + original_x)  # (B, C, T)
-            x = x.permute(0, 2, 1)  # (B, T, C)
+        x = self.spatial_mapping(x)  # (B, C, T)
+        eeg_x = x
+        eeg_x_conformer = eeg_x.permute(0, 2, 1)  # (B, T, C)
+
+        for i in range(self.num_layers):
+            if i != 0:
+                x = x.permute(0, 2, 1)  # (B, T, C)
+            x = self.conv_blocks[i](x + eeg_x)
+            x = x.permute(0, 2, 1)  # (B, C, T)
             if i == self.num_layers - 1:
-                # in the final layer, we don't add skip connection
-                x = transformer_encoder(x)  # (B, T, C)
+                x = self.transformer_blocks[i](x)
             else:
-                x = transformer_encoder(x + original_x_permuted)  # (B, T, C)
-                x = x.permute(0, 2, 1)  # (B, C, T)
-        x = self.final_layer(x)
-        x = x.flatten(start_dim=1)  # (B, T*output_dim)
-        x = self.proj_head(x)  # (B, E)
-        return x  # (B, E)
+                x = self.transformer_blocks[i](x + eeg_x_conformer)
+        x = self.final_layer(x)  # (B, C, T)
+        return x
 
 
 class SpeechEncoder(nn.Module):
@@ -107,12 +103,12 @@ class SpeechEncoder(nn.Module):
         self.hidden_channels = kwargs.get("hidden_channels", 64)
         self.lstm_channels = kwargs.get("lstm_channels", 128)
         self.output_channels = kwargs.get("output_channels", 8)
-        self.embedding_dim = kwargs.get("embedding_dim", 256)
+        self.embedding_dim: int = kwargs.get("embedding_dim", 256)
         self.window_size = kwargs["window_size"]
         self.num_layers = kwargs.get("num_layers", 1)
         self.conv_block_kwargs = kwargs["conv_block"]
 
-        self.channel_mapping = nn.Conv1d(
+        self.spatial_mapping = nn.Conv1d(
             self.input_channels, self.hidden_channels, kernel_size=1
         )  # Identity mapping for eeg
         self.conv_blocks = nn.ModuleList(
@@ -138,14 +134,11 @@ class SpeechEncoder(nn.Module):
             batch_first=True,
             bidirectional=True,
         )
-        self.proj_head = nn.Linear(
-            self.output_channels * self.window_size, self.embedding_dim
-        )
 
     def forward(self, x):
         # (B, T, C)
-        x = torch.permute(x, (0, 2, 1))  # (B, C, T)
-        x = self.channel_mapping(x)  # (B, C, T)
+        x = x.permute(0, 2, 1)  # (B, C, T)
+        x = self.spatial_mapping(x)  # (B, C, T)
         original_x = x  # (B, C, T)
         for i, conv_block in enumerate(self.conv_blocks):
             if i == self.num_layers - 1:
@@ -156,8 +149,6 @@ class SpeechEncoder(nn.Module):
         x = x.permute(0, 2, 1)  # (B, T, C)
         x, _ = self.lstm_1(x)
         x, _ = self.lstm_2(x)
-        x = x.flatten(start_dim=1)  # (B, T*output_dim)
-        x = self.proj_head(x)  # (B, E)
         return x  # (B, E)
 
 
@@ -170,8 +161,8 @@ class CLClsModel(MatchMismatchModel):
         self.eeg_encoder = EEGEncoder(**self.eeg_encoder_kwargs)
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
-        indices, eeg, *speech = x
+    def forward(self, indices, x: list[torch.Tensor]) -> torch.Tensor:
+        eeg, *speech = x
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C)
         # speech: [(B, num_classes, T, C), ...]
@@ -203,12 +194,15 @@ class CLIPModel(ContrastLearningModel):
         self.eeg_encoder = EEGEncoder(**self.eeg_encoder_kwargs)
         self.speech_encoder = SpeechEncoder(**self.speech_encoder_kwargs)
 
-    def forward(self, x: list[torch.Tensor]):
-        indices, eeg, *speech = x
+    def forward(self, indices, x: list[torch.Tensor]):
+        eeg, *speech = x
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C)
         eeg_features = self.eeg_encoder(eeg)  # (B, E)
         speech_features = self.speech_encoder(speech)  # (B, E)
+        # flatten
+        eeg_features = eeg_features.flatten(start_dim=1)  # (B, T*C)
+        speech_features = speech_features.flatten(start_dim=1)  # (B, T*C)
         # L2-normalize
         eeg_features = F.normalize(eeg_features, p=2, dim=1)
         speech_features = F.normalize(speech_features, p=2, dim=1)
@@ -266,7 +260,7 @@ class MoCoModel(ContrastLearningModel):
             self.queue[: B - first] = key[first:]
         self.queue_ptr = (ptr + B) % self.queue_size
 
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, indices, x: list[torch.Tensor]) -> torch.Tensor:
         eeg, *speech = x
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C1), speech: (B, T, C2)
@@ -296,3 +290,53 @@ class MoCoModel(ContrastLearningModel):
         labels = torch.zeros(B, dtype=torch.long, device=logits.device)
         loss = F.cross_entropy(logits, labels)
         return loss
+
+
+class CLIPMemoryBankModel(ContrastLearningModel):
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+        temperature = kwargs.get("temperature", 0.075)
+        self.lambda_inst = kwargs.get("lambda_inst", 0.7)
+        self.lambda_prototype = kwargs.get("lambda_prototype", 0.3)
+
+        self.temperature = nn.Parameter(torch.tensor(temperature))
+        self.eeg_encoder = EEGEncoder(**kwargs["eeg_encoder"])
+        self.speech_encoder = SpeechEncoder(**kwargs["speech_encoder"])
+
+    def init_memory_bank(self, size: int, embedding_dim: int):
+        self.memory_bank = MemoryBank(size, embedding_dim)
+
+    def get_embedding_dim(self) -> int:
+        return self.eeg_encoder.window_size * self.eeg_encoder.output_channels
+
+    def forward(self, indices: torch.Tensor, x: list[torch.Tensor]):
+        eeg, *speech = x
+        speech = torch.cat(speech, dim=-1)
+        eeg_features = self.eeg_encoder(eeg)  # (B, C, T)
+        speech_features = self.speech_encoder(speech)  # (B, C, T)
+        # flatten
+        eeg_features = eeg_features.flatten(start_dim=1)  # (B, T*C)
+        speech_features = speech_features.flatten(start_dim=1)  # (B, T*C)
+        # L2-normalize
+        eeg_features = F.normalize(eeg_features, p=2, dim=1)
+        speech_features = F.normalize(speech_features, p=2, dim=1)
+        # get the average of the eeg features from the memory bank
+        if self.training and self.memory_bank is not None:
+            eeg_features_avg = self.memory_bank(indices, eeg_features)
+            eeg_features_avg = F.normalize(eeg_features_avg, p=2, dim=1)
+            # compute loss
+            mixed_eeg = (
+                self.lambda_inst * eeg_features
+                + self.lambda_prototype * eeg_features_avg
+            )
+        else:
+            mixed_eeg = eeg_features
+        logits = (speech_features @ mixed_eeg.T) * torch.exp(self.temperature)
+        return logits
+
+    def compute_loss(self, logits) -> torch.Tensor:
+        targets = torch.arange(logits.shape[0], device=logits.device)
+        speech_loss = F.cross_entropy(logits, targets)
+        eeg_loss = F.cross_entropy(logits.T, targets)
+        loss_ce = (speech_loss + eeg_loss) / 2
+        return loss_ce

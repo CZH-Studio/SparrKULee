@@ -6,7 +6,7 @@ import warnings
 import yaml
 import lightning.pytorch as pl
 
-from match_mismatch.model import get_litensemblemodule, find_ckpt
+from match_mismatch.model import get_ensemble_litmodule, find_ckpt
 
 
 def evaluate(
@@ -16,7 +16,7 @@ def evaluate(
     ckpt_paths = [find_ckpt(ckpt_dir, "best") for ckpt_dir in ckpt_dirs]
     if not all(ckpt_paths):
         raise ValueError("Some checkpoints are missing.")
-    litmodule = get_litensemblemodule(
+    litmodule = get_ensemble_litmodule(
         data_config, model_config, trainer_config, ckpt_paths
     )
     trainer = pl.Trainer(

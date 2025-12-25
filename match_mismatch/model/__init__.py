@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Type
+from typing import Optional, Type
 from pathlib import Path
 
 import torch
@@ -8,7 +8,12 @@ import torch.nn.functional as F
 import lightning.pytorch as pl
 import importlib
 
-from datautils.dataloader import get_labels, get_dataloader_by_config
+from datautils.dataloader import (
+    get_labels,
+    get_dataloader_by_config,
+    DataLoader,
+    SparrKULeeDataset,
+)
 from datautils import Features
 
 
@@ -17,260 +22,40 @@ class MatchMismatchModel(nn.Module, ABC):
         super().__init__()
 
     @abstractmethod
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, indices: torch.Tensor, x: list[torch.Tensor]) -> torch.Tensor:
         raise NotImplementedError()
 
 
-class LitMatchMismatchModule(pl.LightningModule):
+class MemoryBank(nn.Module):
     def __init__(
         self,
-        data_config: dict,
-        model: MatchMismatchModel,
-        optimizer_config: dict,
-        scheduler_config: dict,
+        size: int,
+        embedding_dim: int,
+        momentum: float = 0.9,
+        device=torch.device("cuda"),
     ) -> None:
         super().__init__()
-        self.data_config = data_config
-        self.num_classes = data_config["num_classes"]
-        self.features = get_features(data_config)
-        self.optimizer_config = optimizer_config
-        self.scheduler_config = scheduler_config
-        self.save_hyperparameters(ignore=["model", "features", "num_classes"])
-        self.model = model
-        self.criterion = nn.CrossEntropyLoss()
-
-    def train_dataloader(self):
-        return get_dataloader_by_config(
-            "train",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
+        self.size = size
+        self.embedding_dim = embedding_dim
+        self.momentum = momentum
+        self.register_buffer(
+            "memory", torch.rand(size + 1, embedding_dim, device=device)
         )
 
-    def val_dataloader(self):
-        return get_dataloader_by_config(
-            "val",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def test_dataloader(self):
-        return get_dataloader_by_config(
-            "test",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def forward(self, x: list[torch.Tensor]):
-        return self.model(x)
-
-    def _compute(self, batch_data) -> tuple[torch.Tensor, float]:
-        _, *batch_data = batch_data  # extract the indices from the batch
-        data, label = get_labels(self.features, self.num_classes, batch_data)
-        out = self(data)
-        loss = self.criterion(out, label)
-        perd = torch.argmax(out, dim=1)
-        total = label.size(0)
-        correct = (perd == label).sum().item()
-        acc = correct / total
-        return loss, acc
-
-    def training_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss, acc = self._compute(batch_data)
-        self.log(
-            "train_loss",
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        self.log("train_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
-    def validation_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss, acc = self._compute(batch_data)
-        self.log(
-            "val_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            sync_dist=True,
-        )
-        self.log("val_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
-    def on_validation_epoch_end(self) -> None:
-        val_acc = self.trainer.callback_metrics.get("val_acc", 0)
-        self.print(f"Epoch {self.current_epoch}: val_acc: {val_acc:.2%}")
-
-    def test_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss, acc = self._compute(batch_data)
-        self.log(
-            "test_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        self.log("test_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
-    def configure_optimizers(self):  # type: ignore
-        optimizer: torch.optim.Optimizer = getattr(
-            torch.optim, self.optimizer_config["name"]
-        )(self.parameters(), **self.optimizer_config["params"])
-        scheduler: torch.optim.lr_scheduler._LRScheduler = getattr(
-            torch.optim.lr_scheduler, self.scheduler_config["name"]
-        )(optimizer, **self.scheduler_config["params"])
-        ret = {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss",
-                "interval": "epoch",
-                "frequency": 1,
-            },
-        }
-        return ret
-
-
-class LitMatchMismatchEnsembleModule(pl.LightningModule):
-    def __init__(
-        self,
-        data_config: dict,
-        models: list[MatchMismatchModel],
-        optimizer_config: dict,
-        scheduler_config: dict,
-    ) -> None:
-        super().__init__()
-        self.data_config = data_config
-        self.num_classes = data_config["num_classes"]
-        self.features = get_features(data_config)
-        self.optimizer_config = optimizer_config
-        self.scheduler_config = scheduler_config
-        self.save_hyperparameters(ignore=["model", "features", "num_classes"])
-        self.models = models
-        self.criterion = nn.CrossEntropyLoss()
-
-    def train_dataloader(self):
-        return get_dataloader_by_config(
-            "train",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def val_dataloader(self):
-        return get_dataloader_by_config(
-            "val",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def test_dataloader(self):
-        return get_dataloader_by_config(
-            "test",
-            **self.data_config,
-            num_replicas=self.trainer.world_size,
-            rank=self.trainer.global_rank,
-        )
-
-    def forward(self, data, i):
-        return self.models[i](data)
-
-    def _compute(self, batch_data) -> tuple[torch.Tensor, float]:
-        _, *batch_data = batch_data  # extract the indices from the batch
-        data, label = get_labels(self.features, self.num_classes, batch_data)
-        outs = [self(data, i) for i in range(len(self.models))]
-        out = torch.stack(outs, dim=0).mean(dim=0)
-        loss = self.criterion(out, label)
-        perd = torch.argmax(out, dim=1)
-        total = label.size(0)
-        correct = (perd == label).sum().item()
-        acc = correct / total
-        return loss, acc
-
-    def training_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss, acc = self._compute(batch_data)
-        self.log(
-            "train_loss",
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        self.log("train_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
-    def validation_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss, acc = self._compute(batch_data)
-        self.log(
-            "val_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            sync_dist=True,
-        )
-        self.log("val_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
-    def on_validation_epoch_end(self) -> None:
-        val_acc = self.trainer.callback_metrics.get("val_acc", 0)
-        self.print(f"Epoch {self.current_epoch}: val_acc: {val_acc:.2%}")
-
-    def test_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss, acc = self._compute(batch_data)
-        self.log(
-            "test_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        self.log("test_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
-    def configure_optimizers(self):  # type: ignore
-        optimizer: torch.optim.Optimizer = getattr(
-            torch.optim, self.optimizer_config["name"]
-        )(self.parameters(), **self.optimizer_config["params"])
-        scheduler: torch.optim.lr_scheduler._LRScheduler = getattr(
-            torch.optim.lr_scheduler, self.scheduler_config["name"]
-        )(optimizer, **self.scheduler_config["params"])
-        ret = {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss",
-                "interval": "epoch",
-                "frequency": 1,
-            },
-        }
-        return ret
+    def forward(self, indices: torch.Tensor, x: torch.Tensor):
+        data_averages = torch.index_select(self.memory, 0, indices.view(-1)).detach()
+        new_entry = data_averages.clone()
+        with torch.no_grad():
+            new_entry.mul_(self.momentum)
+            new_entry.add_(torch.mul(x, 1 - self.momentum))
+            self.memory.index_copy_(0, indices, new_entry)
+        return data_averages
 
 
 class ContrastLearningModel(nn.Module, ABC):
     def __init__(self, **kwargs) -> None:
         super().__init__()
+        self.memory_bank: Optional[MemoryBank] = None
 
     def compute_loss(self, logits: torch.Tensor) -> torch.Tensor:
         # this function implements the standard cross-entropy loss for CLIP
@@ -282,30 +67,31 @@ class ContrastLearningModel(nn.Module, ABC):
         loss = (loss_a + loss_b) / 2
         return loss
 
+    def init_memory_bank(self, size: int, embedding_dim: int):
+        return
+
+    def get_embedding_dim(self) -> int:
+        return 0
+
     @abstractmethod
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, indices: torch.Tensor, x: list[torch.Tensor]):
         raise NotImplementedError()
 
 
-class LitContrastLearningModule(pl.LightningModule):
+class MyLitModule(pl.LightningModule, ABC):
     def __init__(
         self,
         data_config: dict,
-        model: ContrastLearningModel,
+        model: MatchMismatchModel | ContrastLearningModel | list[MatchMismatchModel],
         optimizer_config: dict,
         scheduler_config: dict,
     ) -> None:
         super().__init__()
         self.data_config = data_config
-        # in contrast learning, all features should be set to is_stimuli=False
-        for i in range(len(self.data_config["features"]["items"])):
-            self.data_config["features"]["items"][i]["is_stimuli"] = False
-        self.batch_size = self.data_config["batch_size"]
-        self.features = get_features(self.data_config)
         self.optimizer_config = optimizer_config
         self.scheduler_config = scheduler_config
-        self.save_hyperparameters(ignore=["model", "features", "batch_size"])
         self.model = model
+        self.criterion = nn.CrossEntropyLoss()
 
     def train_dataloader(self):
         return get_dataloader_by_config(
@@ -331,55 +117,9 @@ class LitContrastLearningModule(pl.LightningModule):
             rank=self.trainer.global_rank,
         )
 
-    def forward(self, x: list[torch.Tensor]):
-        return self.model(x)
-
-    def _compute(self, batch_data) -> torch.Tensor:
-        # in contrast learning, accuracy is not as important as loss, so we don't compute accuracy here
-        out = self(batch_data)
-        loss = self.model.compute_loss(out)
-        return loss
-
-    def training_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss = self._compute(batch_data)
-        self.log(
-            "train_loss",
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        return loss
-
-    def validation_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss = self._compute(batch_data)
-        self.log(
-            "val_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            sync_dist=True,
-        )
-        return loss
-
-    def test_step(
-        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
-    ) -> torch.Tensor:
-        loss = self._compute(batch_data)
-        self.log(
-            "test_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        return loss
+    @abstractmethod
+    def forward(self, batch_data: list[torch.Tensor]):
+        raise NotImplementedError()
 
     def configure_optimizers(self):  # type: ignore
         optimizer: torch.optim.Optimizer = getattr(
@@ -400,8 +140,184 @@ class LitContrastLearningModule(pl.LightningModule):
         return ret
 
 
-def get_features(data_config: dict) -> Features:
-    return Features(**data_config["features"])
+class LitMatchMismatchModule(MyLitModule):
+    def __init__(
+        self,
+        data_config: dict,
+        model: MatchMismatchModel | list[MatchMismatchModel],
+        optimizer_config: dict,
+        scheduler_config: dict,
+    ) -> None:
+        super().__init__(data_config, model, optimizer_config, scheduler_config)
+        self.num_classes = self.data_config["num_classes"]
+        self.features = Features(**self.data_config["features"])
+        self.save_hyperparameters(
+            ignore=["model", "criterion", "features", "num_classes"]
+        )
+
+    def forward(self, batch_data) -> tuple[torch.Tensor, float]:
+        indices, *data = batch_data  # extract indices from the first position
+        data, label = get_labels(self.features, self.num_classes, data)
+        assert isinstance(self.model, MatchMismatchModel)
+        out = self.model(indices, data)
+        loss = self.criterion(out, label)
+        perd = torch.argmax(out, dim=1)
+        total = label.size(0)
+        correct = (perd == label).sum().item()
+        acc = correct / total
+        return loss, acc
+
+    def training_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss, acc = self(batch_data)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        self.log("train_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+    def validation_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss, acc = self(batch_data)
+        self.log(
+            "val_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            sync_dist=True,
+        )
+        self.log("val_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+    def on_validation_epoch_end(self) -> None:
+        val_acc = self.trainer.callback_metrics.get("val_acc", 0)
+        self.print(f"Epoch {self.current_epoch}: val_acc: {val_acc:.2%}")
+
+    def test_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss, acc = self(batch_data)
+        self.log(
+            "test_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        self.log("test_acc", acc, on_step=False, on_epoch=True, sync_dist=True)
+        return loss
+
+
+class LitMatchMismatchEnsembleModule(LitMatchMismatchModule):
+    def __init__(
+        self,
+        data_config: dict,
+        models: list[MatchMismatchModel],
+        optimizer_config: dict,
+        scheduler_config: dict,
+    ) -> None:
+        super().__init__(data_config, models, optimizer_config, scheduler_config)
+        self.num_classes = data_config["num_classes"]
+        self.features = Features(**data_config["features"])
+        self.save_hyperparameters(
+            ignore=["model", "criterion", "features", "num_classes"]
+        )
+
+    def forward(self, batch_data: list[torch.Tensor]):
+        indices, *data = batch_data
+        data, label = get_labels(self.features, self.num_classes, data)
+        assert isinstance(self.model, list)
+        outs = [model(indices, data) for model in self.model]
+        out = torch.stack(outs, dim=0).mean(dim=0)
+        loss = self.criterion(out, label)
+        perd = torch.argmax(out, dim=1)
+        total = label.size(0)
+        correct = (perd == label).sum().item()
+        acc = correct / total
+        return loss, acc
+
+
+class LitContrastLearningModule(MyLitModule):
+    def __init__(
+        self,
+        data_config: dict,
+        model: ContrastLearningModel,
+        optimizer_config: dict,
+        scheduler_config: dict,
+    ) -> None:
+        super().__init__(data_config, model, optimizer_config, scheduler_config)
+        # in contrast learning, all features should be set to is_stimuli=False
+        for i in range(len(self.data_config["features"]["items"])):
+            self.data_config["features"]["items"][i]["is_stimuli"] = False
+        self.batch_size = self.data_config["batch_size"]
+        self.features = Features(**data_config["features"])
+        self.save_hyperparameters(
+            ignore=["model", "criterion", "features", "batch_size"]
+        )
+
+    def forward(self, batch_data: list[torch.Tensor]):
+        indices, *data = batch_data
+        assert isinstance(self.model, ContrastLearningModel)
+        out = self.model(indices, data)
+        loss = self.model.compute_loss(out)
+        return loss
+
+    def training_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss = self(batch_data)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        return loss
+
+    def validation_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss = self(batch_data)
+        self.log(
+            "val_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            sync_dist=True,
+        )
+        return loss
+
+    def test_step(
+        self, batch_data: tuple[list[torch.Tensor], torch.Tensor], batch_idx
+    ) -> torch.Tensor:
+        loss = self(batch_data)
+        self.log(
+            "test_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        return loss
+
+    def on_train_start(self) -> None:
+        assert isinstance(self.trainer.train_dataloader, DataLoader)
+        assert isinstance(self.trainer.train_dataloader.dataset, SparrKULeeDataset)
+        assert isinstance(self.model, ContrastLearningModel)
+        size = len(self.trainer.train_dataloader.dataset)
+        embedding_dim = self.model.get_embedding_dim()
+        self.model.init_memory_bank(size, embedding_dim)
 
 
 def get_model_class(
@@ -455,7 +371,7 @@ def get_litmodule(
     return litmodule
 
 
-def get_litensemblemodule(
+def get_ensemble_litmodule(
     data_config: dict,
     model_config: dict,
     trainer_config: dict,

@@ -31,7 +31,7 @@ class DilatedConvModel(MatchMismatchModel):
         )
         self.linear = nn.Linear(self.hidden_dim**2, 1)
 
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, indices, x: list[torch.Tensor]) -> torch.Tensor:
         eeg, *speech = x
         speech = torch.cat(speech, dim=-1).contiguous()  # concat all speech features
         # eeg: (B, T, C), envelope: (B, num_classes, T, 1)
@@ -75,15 +75,15 @@ class DilatedConvModelFFR(MatchMismatchModel):
         self.conv_64 = DilatedConvModel(**kwargs)
         self.conv_512 = DilatedConvModel(**kwargs)
 
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, indices, x: list[torch.Tensor]) -> torch.Tensor:
         (
             eeg_64_board_band,
             envelope_64_board_band,
             eeg_512_low_gamma,
             envelope_512_board_band,
         ) = x
-        out_64 = self.conv_64([eeg_64_board_band, envelope_64_board_band])
-        out_512 = self.conv_512([eeg_512_low_gamma, envelope_512_board_band])
+        out_64 = self.conv_64(None, [eeg_64_board_band, envelope_64_board_band])
+        out_512 = self.conv_512(None, [eeg_512_low_gamma, envelope_512_board_band])
         out = (out_64 + out_512) / 2
         return out
 
@@ -97,7 +97,7 @@ class DilatedConvModelFFRMel(MatchMismatchModel):
         kwargs["feature_dim"] = 1
         self.conv_512 = DilatedConvModel(**kwargs)
 
-    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, indices, x: list[torch.Tensor]) -> torch.Tensor:
         (
             eeg_64_board_band,
             envelope_64_board_band,
@@ -106,8 +106,9 @@ class DilatedConvModelFFRMel(MatchMismatchModel):
             mel_64,
         ) = x
         out_64 = self.conv_64(
-            [eeg_64_board_band, torch.cat([envelope_64_board_band, mel_64], dim=-1)]
+            None,
+            [eeg_64_board_band, torch.cat([envelope_64_board_band, mel_64], dim=-1)],
         )
-        out_512 = self.conv_512([eeg_512_low_gamma, envelope_512_board_band])
+        out_512 = self.conv_512(None, [eeg_512_low_gamma, envelope_512_board_band])
         out = (out_64 + out_512) / 2
         return out
