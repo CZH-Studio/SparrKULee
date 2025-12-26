@@ -1,14 +1,17 @@
 from logging import Logger
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
+from numpy.typing import NDArray
+import torch
 import librosa
 from brian2 import Hz
 from brian2hears import Sound, erbspace, Gammatone, Filterbank
 import scipy
+from transformers import Wav2Vec2ForCTC
 
 from brain_pipeline.step.step import Step
-from brain_pipeline import DefaultKeys, Key, OptionalKey
+from brain_pipeline import DefaultKeys, OptionalKey
 
 
 class EnvelopeCalculator(Filterbank):
@@ -162,3 +165,89 @@ class MelSpectrogram(Step):
         ).T
         mel_spectrogram = np.power(mel_spectrogram, self.power_factor)
         return dict(zip(self.output_keys, [mel_spectrogram, mel_kwargs["hop_length"]]))
+
+
+class Wav2Vec(Step):
+    def __init__(
+        self,
+        input_keys: OptionalKey = None,
+        output_keys: OptionalKey = None,
+        model_name: str = "",
+        lang: str = "en",
+        extract_layers: Optional[list[int]] = None,
+        overlap: int = 2,
+        segment_length: int = 8,
+        target_sr: int = 64,
+    ):
+        super().__init__(
+            input_keys,
+            [DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR],
+            output_keys,
+            [DefaultKeys.TMP_STIMULI_DATA],
+        )
+        self.assert_keys_num("==", 2, ">=", 1)
+        self.model_name = model_name
+        self.lang = lang
+        self.extract_layers = extract_layers if extract_layers is not None else [19]
+        assert len(self.extract_layers) == len(
+            self.output_keys
+        ), "Number of output keys should match number of layers to extract"
+        self.overlap = overlap
+        self.segment_length = segment_length
+        self.target_sr = target_sr
+        self.model = Wav2Vec2ForCTC.from_pretrained(model_name)
+
+    def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
+        audio_data, audio_sr = [input_data[key] for key in self.input_keys]
+        audio_data: NDArray
+        audio_sr: int
+
+        if audio_data.ndim == 1:
+            audio_data = np.expand_dims(audio_data, axis=0)
+        segment_length = self.segment_length * audio_sr
+        audio_length = np.size(audio_data)
+
+        audio_data = np.concatenate(
+            [
+                np.zeros((1, int(self.overlap / 2) * audio_sr), dtype=np.float32),
+                audio_data,
+            ],
+            axis=1,
+        )
+        eof = False
+        outputs = {}
+        for layer in self.extract_layers:
+            outputs[layer] = []
+        for i in range(int(audio_length / segment_length) + 1):
+            start = i * segment_length
+            end = start + segment_length + self.overlap * audio_sr
+
+            if end < np.size(audio_data):
+                speech_segment = audio_data[:, start:end]
+            else:
+                speech_segment = audio_data[:, start:]
+                eof = True
+            input = torch.tensor(speech_segment)
+            with torch.no_grad():
+                logits = self.model.base_model(
+                    input,
+                    attention_mask=torch.ones_like(input),
+                    output_hidden_states=True,
+                )
+            for layer in self.extract_layers:
+                out = logits["hidden_states"][layer]
+                out = out.numpy()
+                out = np.squeeze(out)
+                if eof:
+                    out = out[int(self.overlap / 2) * 50 :]
+                else:
+                    out = out[
+                        int(self.overlap / 2) * 50 : -int(self.overlap / 2) * 50 + 1, :
+                    ]
+                outputs[layer].append(out)
+        for k, v in outputs.items():
+            stacked = np.vstack(v)
+            num_samples = round(np.size(stacked, axis=0) * float(self.target_sr) / 50)
+            stacked = scipy.signal.resample(stacked, num_samples)
+            outputs[k] = stacked
+        return dict(zip(self.output_keys, [outputs]))

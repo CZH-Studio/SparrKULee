@@ -170,6 +170,9 @@ class CLClsModel(MatchMismatchModel):
         speech = speech.reshape(B * num_classes, T, C)  # (B*num_classes, T, C)
         eeg_features = self.eeg_encoder(eeg)
         speech_features = self.speech_encoder(speech)
+        # flatten
+        eeg_features = eeg_features.flatten(start_dim=1)  # (B, T*C)
+        speech_features = speech_features.flatten(start_dim=1)  # (B, T*C)
         # L2-normalize
         eeg_features = F.normalize(eeg_features, p=2, dim=1)  # (B, E)
         speech_features = F.normalize(speech_features, p=2, dim=1)  # (B*num_classes, E)

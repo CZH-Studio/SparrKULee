@@ -362,7 +362,9 @@ def get_litmodule(
         litmodule = litmodule_class(**kwargs)
     else:
         try:
-            litmodule = litmodule_class.load_from_checkpoint(ckpt_path, **kwargs)
+            litmodule = litmodule_class.load_from_checkpoint(
+                ckpt_path, **kwargs, strict=False
+            )
         except TypeError:
             litmodule = torch.load(ckpt_path)
             for k, v in kwargs.items():

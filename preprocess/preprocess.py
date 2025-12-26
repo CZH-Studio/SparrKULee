@@ -13,7 +13,7 @@ from brain_pipeline.step.common.signal import ResamplePoly, SosFilter
 from brain_pipeline.step.common.save import Save, FilepathFn
 from brain_pipeline.step.common import GC
 from brain_pipeline.step.stimuli.load import LoadStimuli
-from brain_pipeline.step.stimuli.audio import GammatoneEnvelope, MelSpectrogram
+from brain_pipeline.step.stimuli.audio import GammatoneEnvelope, MelSpectrogram, Wav2Vec
 from brain_pipeline.step.eeg.load import LoadEEG
 from brain_pipeline.step.eeg.link import LinkEEG2Stimuli
 from brain_pipeline.step.eeg.arrange import (
@@ -25,8 +25,9 @@ from brain_pipeline.step.eeg.arrange import (
 
 
 ENVELOPE_64_BOARD_BAND = "envelope-64-board-band"
-MEL_64 = "mel-64"
 ENVELOPE_512_BOARD_BAND = "envelope-512-board-band"
+MEL_64 = "mel-64"
+WAV2VEC_64 = "wav2vec-64"
 EEG_64_BOARD_BAND = "eeg-64-board-band"
 EEG_512_LOW_GAMMA = "eeg-512-low-gamma"
 
@@ -40,22 +41,36 @@ stimulus_pipeline = Pipeline(
             output_keys=[ENVELOPE_64_BOARD_BAND],
             target_sr=64,
         ),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
+        GC([ENVELOPE_64_BOARD_BAND]),
         ResamplePoly(
             input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
             output_keys=[ENVELOPE_512_BOARD_BAND],
             target_sr=512,
         ),
         Save(
-            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
-            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        ),
-        Save(
             input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
             filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
         ),
+        GC([ENVELOPE_512_BOARD_BAND]),
         MelSpectrogram(output_keys=[MEL_64, DefaultKeys.MEL_SR]),
         Save(
             input_keys=[DefaultKeys.I_STI_PATH, MEL_64],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
+        GC([MEL_64]),
+        Wav2Vec(
+            input_keys=[DefaultKeys.I_STI_PATH, DefaultKeys.I_STI_DATA],
+            output_keys=[WAV2VEC_64],
+            model_name="jonatasgrosman/wav2vec2-large-xlsr-53-dutch",
+            lang="nl",
+            extract_layers=[19],
+        ),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, WAV2VEC_64],
             filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
         ),
     ],
