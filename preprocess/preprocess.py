@@ -35,35 +35,35 @@ EEG_512_LOW_GAMMA = "eeg-512-low-gamma"
 stimulus_pipeline = Pipeline(
     steps=[
         LoadStimuli(),
-        GammatoneEnvelope(),
-        ResamplePoly(
-            input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
-            output_keys=[ENVELOPE_64_BOARD_BAND],
-            target_sr=64,
-        ),
-        Save(
-            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
-            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        ),
-        GC([ENVELOPE_64_BOARD_BAND]),
-        ResamplePoly(
-            input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
-            output_keys=[ENVELOPE_512_BOARD_BAND],
-            target_sr=512,
-        ),
-        Save(
-            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
-            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        ),
-        GC([ENVELOPE_512_BOARD_BAND]),
-        MelSpectrogram(output_keys=[MEL_64, DefaultKeys.MEL_SR]),
-        Save(
-            input_keys=[DefaultKeys.I_STI_PATH, MEL_64],
-            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        ),
-        GC([MEL_64]),
+        # GammatoneEnvelope(),
+        # ResamplePoly(
+        #     input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
+        #     output_keys=[ENVELOPE_64_BOARD_BAND],
+        #     target_sr=64,
+        # ),
+        # Save(
+        #     input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
+        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        # ),
+        # GC([ENVELOPE_64_BOARD_BAND]),
+        # ResamplePoly(
+        #     input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
+        #     output_keys=[ENVELOPE_512_BOARD_BAND],
+        #     target_sr=512,
+        # ),
+        # Save(
+        #     input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
+        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        # ),
+        # GC([ENVELOPE_512_BOARD_BAND]),
+        # MelSpectrogram(output_keys=[MEL_64, DefaultKeys.MEL_SR]),
+        # Save(
+        #     input_keys=[DefaultKeys.I_STI_PATH, MEL_64],
+        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        # ),
+        # GC([MEL_64]),
         Wav2Vec(
-            input_keys=[DefaultKeys.I_STI_PATH, DefaultKeys.I_STI_DATA],
+            input_keys=[DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR],
             output_keys=[WAV2VEC_64],
             model_name="jonatasgrosman/wav2vec2-large-xlsr-53-dutch",
             lang="nl",
@@ -137,7 +137,7 @@ def main():
                 r"^(podcast|audiobook).*\.npz\.gz$",
             ),
             pipeline=stimulus_pipeline,
-            num_processes=8,
+            num_processes=1,
         ),
         # ExecutionConfig(
         #     dataloader=GlobDataloader(

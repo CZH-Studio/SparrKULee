@@ -1,380 +1,373 @@
-[2025-12-08 16:58:48,402] [MainProcess] [INFO] Start running pipeline: 1 / 1
-[2025-12-08 16:58:48,462] [MainProcess] [INFO] Started worker process 70782
-[2025-12-08 16:58:48,464] [MainProcess] [INFO] Started worker process 70783
-[2025-12-08 16:58:48,466] [MainProcess] [INFO] Started worker process 70785
-[2025-12-08 16:58:48,467] [MainProcess] [INFO] Started worker process 70786
-[2025-12-08 16:58:48,469] [MainProcess] [INFO] Started worker process 70787
-[2025-12-08 16:58:48,470] [MainProcess] [INFO] Started worker process 70788
-[2025-12-08 16:58:48,471] [MainProcess] [INFO] Started worker process 70789
-[2025-12-08 16:58:48,472] [MainProcess] [INFO] Started worker process 70790
-[2025-12-08 16:58:51,579] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:51,742] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:51,982] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:51,993] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:52,020] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:52,084] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:52,287] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:52,342] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:52,743] [Process-1] [INFO] Loaded stimuli from audiobook_7_5.npz.gz with shape (5731296,)
-[2025-12-08 16:58:52,743] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:53,481] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:58:53,784] [Process-1] [INFO] Processed 1 files
-[2025-12-08 16:58:53,784] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:56,802] [Process-5] [INFO] Loaded stimuli from audiobook_2_1.npz.gz with shape (37963799,)
-[2025-12-08 16:58:56,803] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:56,876] [Process-4] [INFO] Loaded stimuli from podcast_20.npz.gz with shape (38218188,)
-[2025-12-08 16:58:56,877] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:57,269] [Process-1] [INFO] Loaded stimuli from audiobook_10_1.npz.gz with shape (29542531,)
-[2025-12-08 16:58:57,269] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:57,653] [Process-3] [INFO] Loaded stimuli from audiobook_2_2.npz.gz with shape (36559852,)
-[2025-12-08 16:58:57,654] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:58,462] [Process-7] [INFO] Loaded stimuli from podcast_19.npz.gz with shape (49095158,)
-[2025-12-08 16:58:58,462] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:58,611] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:58:58,654] [Process-6] [INFO] Loaded stimuli from podcast_5.npz.gz with shape (47775522,)
-[2025-12-08 16:58:58,654] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:58,683] [Process-1] [INFO] Processed 2 files
-[2025-12-08 16:58:58,684] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:58,749] [Process-2] [INFO] Loaded stimuli from podcast_31.npz.gz with shape (42592828,)
-[2025-12-08 16:58:58,749] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:58,946] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:58:59,046] [Process-5] [INFO] Processed 3 files
-[2025-12-08 16:58:59,048] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:59,353] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:58:59,452] [Process-4] [INFO] Processed 4 files
-[2025-12-08 16:58:59,454] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:58:59,514] [Process-8] [INFO] Loaded stimuli from podcast_34.npz.gz with shape (46215168,)
-[2025-12-08 16:58:59,514] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:58:59,971] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:00,063] [Process-3] [INFO] Processed 5 files
-[2025-12-08 16:59:00,065] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:00,101] [Process-5] [INFO] Loaded stimuli from audiobook_7_6.npz.gz with shape (5809095,)
-[2025-12-08 16:59:00,102] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:00,350] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:00,378] [Process-5] [INFO] Processed 6 files
-[2025-12-08 16:59:00,379] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:00,596] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:00,727] [Process-2] [INFO] Processed 7 files
-[2025-12-08 16:59:00,727] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:01,348] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:01,475] [Process-8] [INFO] Processed 8 files
-[2025-12-08 16:59:01,477] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:01,485] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:01,544] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:01,650] [Process-6] [INFO] Processed 9 files
-[2025-12-08 16:59:01,651] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:01,705] [Process-7] [INFO] Processed 10 files
-[2025-12-08 16:59:01,707] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:03,218] [Process-3] [INFO] Loaded stimuli from audiobook_1_2_shifted.npz.gz with shape (20096700,)
-[2025-12-08 16:59:03,218] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:03,757] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:03,809] [Process-3] [INFO] Processed 11 files
-[2025-12-08 16:59:03,810] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:04,519] [Process-4] [INFO] Loaded stimuli from podcast_22.npz.gz with shape (30166623,)
-[2025-12-08 16:59:04,519] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:05,505] [Process-5] [INFO] Loaded stimuli from podcast_13.npz.gz with shape (33767425,)
-[2025-12-08 16:59:05,506] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:05,684] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:05,768] [Process-4] [INFO] Processed 12 files
-[2025-12-08 16:59:05,769] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:05,887] [Process-1] [INFO] Loaded stimuli from audiobook_5_1.npz.gz with shape (43493213,)
-[2025-12-08 16:59:05,888] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:06,065] [Process-2] [INFO] Loaded stimuli from audiobook_9_2.npz.gz with shape (42288157,)
-[2025-12-08 16:59:06,065] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:06,426] [Process-6] [INFO] Loaded stimuli from audiobook_10_2.npz.gz with shape (31270531,)
-[2025-12-08 16:59:06,426] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:06,510] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:06,597] [Process-5] [INFO] Processed 13 files
-[2025-12-08 16:59:06,599] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:07,045] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:07,157] [Process-2] [INFO] Processed 14 files
-[2025-12-08 16:59:07,158] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:07,574] [Process-4] [INFO] Loaded stimuli from audiobook_1_artefact.npz.gz with shape (14416720,)
-[2025-12-08 16:59:07,574] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:07,793] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:07,922] [Process-1] [INFO] Processed 15 files
-[2025-12-08 16:59:07,923] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:07,925] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:08,040] [Process-6] [INFO] Processed 16 files
-[2025-12-08 16:59:08,041] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:08,070] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:08,103] [Process-4] [INFO] Processed 17 files
-[2025-12-08 16:59:08,104] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:08,283] [Process-7] [INFO] Loaded stimuli from podcast_28.npz.gz with shape (38775467,)
-[2025-12-08 16:59:08,283] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:08,597] [Process-8] [INFO] Loaded stimuli from podcast_30.npz.gz with shape (46706661,)
-[2025-12-08 16:59:08,597] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:08,801] [Process-2] [INFO] Loaded stimuli from audiobook_7_1.npz.gz with shape (11794742,)
-[2025-12-08 16:59:08,802] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:09,047] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:09,075] [Process-2] [INFO] Processed 18 files
-[2025-12-08 16:59:09,076] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:09,692] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:09,831] [Process-8] [INFO] Processed 19 files
-[2025-12-08 16:59:09,832] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:09,836] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:09,935] [Process-7] [INFO] Processed 20 files
-[2025-12-08 16:59:09,936] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:10,415] [Process-1] [INFO] Loaded stimuli from audiobook_1_2.npz.gz with shape (20096700,)
-[2025-12-08 16:59:10,415] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:10,948] [Process-3] [INFO] Loaded stimuli from podcast_4.npz.gz with shape (47403259,)
-[2025-12-08 16:59:10,948] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:11,092] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:11,148] [Process-1] [INFO] Processed 21 files
-[2025-12-08 16:59:11,149] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:12,465] [Process-2] [INFO] Loaded stimuli from audiobook_11_2.npz.gz with shape (28578299,)
-[2025-12-08 16:59:12,466] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:12,545] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:12,664] [Process-3] [INFO] Processed 22 files
-[2025-12-08 16:59:12,665] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:12,921] [Process-4] [INFO] Loaded stimuli from audiobook_8_2.npz.gz with shape (37399406,)
-[2025-12-08 16:59:12,921] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:13,116] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:13,192] [Process-2] [INFO] Processed 23 files
-[2025-12-08 16:59:13,193] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:13,266] [Process-5] [INFO] Loaded stimuli from podcast_1.npz.gz with shape (45788265,)
-[2025-12-08 16:59:13,266] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:14,281] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:14,372] [Process-4] [INFO] Processed 24 files
-[2025-12-08 16:59:14,374] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:14,422] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:14,534] [Process-5] [INFO] Processed 25 files
-[2025-12-08 16:59:14,536] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:14,566] [Process-7] [INFO] Loaded stimuli from audiobook_12_2.npz.gz with shape (36479138,)
-[2025-12-08 16:59:14,566] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:15,101] [Process-8] [INFO] Loaded stimuli from audiobook_1.npz.gz with shape (44967811,)
-[2025-12-08 16:59:15,101] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:16,079] [Process-6] [INFO] Loaded stimuli from podcast_8.npz.gz with shape (48628716,)
-[2025-12-08 16:59:16,080] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:16,139] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:16,254] [Process-8] [INFO] Processed 26 files
-[2025-12-08 16:59:16,254] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:16,316] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:16,408] [Process-7] [INFO] Processed 27 files
-[2025-12-08 16:59:16,409] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:17,603] [Process-1] [INFO] Loaded stimuli from podcast_7.npz.gz with shape (47282330,)
-[2025-12-08 16:59:17,604] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:17,903] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:18,033] [Process-6] [INFO] Processed 28 files
-[2025-12-08 16:59:18,035] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:18,089] [Process-3] [INFO] Loaded stimuli from podcast_6.npz.gz with shape (40547328,)
-[2025-12-08 16:59:18,090] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:18,216] [Process-2] [INFO] Loaded stimuli from audiobook_6_1.npz.gz with shape (40012152,)
-[2025-12-08 16:59:18,216] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:18,930] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:19,036] [Process-3] [INFO] Processed 29 files
-[2025-12-08 16:59:19,037] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:19,136] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:19,231] [Process-2] [INFO] Processed 30 files
-[2025-12-08 16:59:19,232] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:19,671] [Process-4] [INFO] Loaded stimuli from podcast_10.npz.gz with shape (40095745,)
-[2025-12-08 16:59:19,671] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:19,802] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:19,945] [Process-1] [INFO] Processed 31 files
-[2025-12-08 16:59:19,947] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:20,429] [Process-5] [INFO] Loaded stimuli from audiobook_5_3.npz.gz with shape (45742238,)
-[2025-12-08 16:59:20,429] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:21,083] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:21,199] [Process-4] [INFO] Processed 32 files
-[2025-12-08 16:59:21,200] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:21,410] [Process-1] [INFO] Loaded stimuli from audiobook_7_3.npz.gz with shape (11303390,)
-[2025-12-08 16:59:21,411] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:21,469] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:21,582] [Process-5] [INFO] Processed 33 files
-[2025-12-08 16:59:21,584] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:21,743] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:21,770] [Process-1] [INFO] Processed 34 files
-[2025-12-08 16:59:21,771] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:22,362] [Process-7] [INFO] Loaded stimuli from podcast_15.npz.gz with shape (44244602,)
-[2025-12-08 16:59:22,362] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:23,130] [Process-8] [INFO] Loaded stimuli from podcast_2.npz.gz with shape (54468999,)
-[2025-12-08 16:59:23,130] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:24,015] [Process-1] [INFO] Loaded stimuli from audiobook_6_1_swn.npz.gz with shape (15672052,)
-[2025-12-08 16:59:24,016] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:24,107] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:24,122] [Process-5] [INFO] Loaded stimuli from audiobook_1_1.npz.gz with shape (21955710,)
-[2025-12-08 16:59:24,123] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:24,140] [Process-2] [INFO] Loaded stimuli from audiobook_6_2.npz.gz with shape (40003855,)
-[2025-12-08 16:59:24,140] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:24,247] [Process-7] [INFO] Processed 35 files
-[2025-12-08 16:59:24,249] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:24,285] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:24,458] [Process-8] [INFO] Processed 36 files
-[2025-12-08 16:59:24,460] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:24,586] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:24,622] [Process-1] [INFO] Processed 37 files
-[2025-12-08 16:59:24,622] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:24,714] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:24,771] [Process-5] [INFO] Processed 38 files
-[2025-12-08 16:59:24,772] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:25,123] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:25,243] [Process-2] [INFO] Processed 39 files
-[2025-12-08 16:59:25,245] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:25,695] [Process-3] [INFO] Loaded stimuli from podcast_12.npz.gz with shape (50503680,)
-[2025-12-08 16:59:25,696] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:26,145] [Process-6] [INFO] Loaded stimuli from podcast_24.npz.gz with shape (47657378,)
-[2025-12-08 16:59:26,145] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:26,573] [Process-4] [INFO] Loaded stimuli from audiobook_13_2.npz.gz with shape (40870022,)
-[2025-12-08 16:59:26,573] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:27,137] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:27,273] [Process-3] [INFO] Processed 40 files
-[2025-12-08 16:59:27,274] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:28,138] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:28,264] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:28,265] [Process-6] [INFO] Processed 41 files
-[2025-12-08 16:59:28,266] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:28,364] [Process-4] [INFO] Processed 42 files
-[2025-12-08 16:59:28,364] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:28,528] [Process-8] [INFO] Loaded stimuli from audiobook_12_1.npz.gz with shape (31679138,)
-[2025-12-08 16:59:28,528] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:29,197] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:29,274] [Process-8] [INFO] Processed 43 files
-[2025-12-08 16:59:29,275] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:29,691] [Process-1] [INFO] Loaded stimuli from podcast_33.npz.gz with shape (34105344,)
-[2025-12-08 16:59:29,691] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:30,665] [Process-5] [INFO] Loaded stimuli from podcast_37.npz.gz with shape (41017400,)
-[2025-12-08 16:59:30,665] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:30,917] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:31,006] [Process-1] [INFO] Processed 44 files
-[2025-12-08 16:59:31,007] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:31,020] [Process-4] [INFO] Loaded stimuli from audiobook_1_1_shifted.npz.gz with shape (21955710,)
-[2025-12-08 16:59:31,020] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:31,131] [Process-7] [INFO] Loaded stimuli from podcast_17.npz.gz with shape (43799894,)
-[2025-12-08 16:59:31,132] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:31,602] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:31,662] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:31,716] [Process-5] [INFO] Processed 45 files
-[2025-12-08 16:59:31,718] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:31,753] [Process-4] [INFO] Processed 46 files
-[2025-12-08 16:59:31,754] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:31,914] [Process-2] [INFO] Loaded stimuli from podcast_32.npz.gz with shape (45296745,)
-[2025-12-08 16:59:31,914] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:32,138] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:32,249] [Process-7] [INFO] Processed 47 files
-[2025-12-08 16:59:32,249] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:32,950] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:33,062] [Process-2] [INFO] Processed 48 files
-[2025-12-08 16:59:33,063] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:33,804] [Process-4] [INFO] Loaded stimuli from audiobook_7_2.npz.gz with shape (11609348,)
-[2025-12-08 16:59:33,804] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:34,086] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:34,115] [Process-4] [INFO] Processed 49 files
-[2025-12-08 16:59:34,115] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:35,193] [Process-6] [INFO] Loaded stimuli from podcast_9.npz.gz with shape (57187962,)
-[2025-12-08 16:59:35,193] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:35,412] [Process-3] [INFO] Loaded stimuli from podcast_35.npz.gz with shape (44936186,)
-[2025-12-08 16:59:35,412] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:35,895] [Process-5] [INFO] Loaded stimuli from audiobook_8_1.npz.gz with shape (35863406,)
-[2025-12-08 16:59:35,895] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:36,362] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:36,475] [Process-3] [INFO] Processed 50 files
-[2025-12-08 16:59:36,476] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:36,586] [Process-8] [INFO] Loaded stimuli from podcast_36.npz.gz with shape (44333210,)
-[2025-12-08 16:59:36,586] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:36,740] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:36,796] [Process-7] [INFO] Loaded stimuli from audiobook_11_1.npz.gz with shape (37986299,)
-[2025-12-08 16:59:36,796] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:36,807] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:36,837] [Process-5] [INFO] Processed 51 files
-[2025-12-08 16:59:36,838] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:37,007] [Process-6] [INFO] Processed 52 files
-[2025-12-08 16:59:37,009] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:37,559] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:37,684] [Process-8] [INFO] Processed 53 files
-[2025-12-08 16:59:37,686] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:37,812] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:37,820] [Process-1] [INFO] Loaded stimuli from podcast_25.npz.gz with shape (46574028,)
-[2025-12-08 16:59:37,820] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:37,910] [Process-7] [INFO] Processed 54 files
-[2025-12-08 16:59:37,911] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:38,824] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:38,946] [Process-1] [INFO] Processed 55 files
-[2025-12-08 16:59:38,948] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:39,404] [Process-2] [INFO] Loaded stimuli from audiobook_3_noise.npz.gz with shape (46197606,)
-[2025-12-08 16:59:39,405] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:39,948] [Process-4] [INFO] Loaded stimuli from podcast_14.npz.gz with shape (48282645,)
-[2025-12-08 16:59:39,949] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:40,455] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:40,577] [Process-2] [INFO] Processed 56 files
-[2025-12-08 16:59:40,578] [Process-2] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:41,841] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:41,973] [Process-4] [INFO] Processed 57 files
-[2025-12-08 16:59:41,974] [Process-4] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:42,031] [Process-3] [INFO] Loaded stimuli from podcast_16.npz.gz with shape (37088027,)
-[2025-12-08 16:59:42,031] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:42,033] [Process-5] [INFO] Loaded stimuli from audiobook_4.npz.gz with shape (39044494,)
-[2025-12-08 16:59:42,033] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:42,712] [Process-6] [INFO] Loaded stimuli from podcast_23.npz.gz with shape (40627862,)
-[2025-12-08 16:59:42,713] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:42,803] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:42,894] [Process-3] [INFO] Processed 58 files
-[2025-12-08 16:59:42,896] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:43,020] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:43,139] [Process-5] [INFO] Processed 59 files
-[2025-12-08 16:59:43,141] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:43,712] [Process-8] [INFO] Loaded stimuli from audiobook_13_1.npz.gz with shape (48070021,)
-[2025-12-08 16:59:43,712] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:44,322] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:44,447] [Process-6] [INFO] Processed 60 files
-[2025-12-08 16:59:44,448] [Process-6] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:44,817] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:44,940] [Process-8] [INFO] Processed 61 files
-[2025-12-08 16:59:44,941] [Process-8] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:44,960] [Process-1] [INFO] Loaded stimuli from audiobook_14_2.npz.gz with shape (55115442,)
-[2025-12-08 16:59:44,960] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:45,029] [Process-7] [INFO] Loaded stimuli from podcast_21.npz.gz with shape (50641050,)
-[2025-12-08 16:59:45,029] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:46,223] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:46,347] [Process-7] [INFO] Processed 62 files
-[2025-12-08 16:59:46,348] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:47,253] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:47,416] [Process-1] [INFO] Processed 63 files
-[2025-12-08 16:59:47,417] [Process-1] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:47,541] [Process-5] [INFO] Loaded stimuli from podcast_3.npz.gz with shape (34907952,)
-[2025-12-08 16:59:47,541] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:47,945] [Process-2] [INFO] Loaded stimuli from podcast_18.npz.gz with shape (55370119,)
-[2025-12-08 16:59:47,945] [Process-2] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:48,046] [Process-4] [INFO] Loaded stimuli from podcast_27.npz.gz with shape (41946941,)
-[2025-12-08 16:59:48,046] [Process-4] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:48,308] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:48,312] [Process-3] [INFO] Loaded stimuli from podcast_26.npz.gz with shape (37903326,)
-[2025-12-08 16:59:48,312] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:48,382] [Process-7] [INFO] Loaded stimuli from audiobook_7_4.npz.gz with shape (15672052,)
-[2025-12-08 16:59:48,382] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:48,398] [Process-5] [INFO] Processed 64 files
-[2025-12-08 16:59:48,400] [Process-5] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:48,704] [Process-6] [INFO] Loaded stimuli from audiobook_9_1.npz.gz with shape (31056157,)
-[2025-12-08 16:59:48,704] [Process-6] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:48,740] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:48,780] [Process-7] [INFO] Processed 65 files
-[2025-12-08 16:59:48,781] [Process-7] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:49,188] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:49,223] [Process-2] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:49,320] [Process-3] [INFO] Processed 66 files
-[2025-12-08 16:59:49,321] [Process-3] [INFO] Running step LoadStimuli (1/3)
-[2025-12-08 16:59:49,414] [Process-2] [INFO] Processed 67 files
-[2025-12-08 16:59:49,861] [Process-4] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:49,979] [Process-4] [INFO] Processed 68 files
-[2025-12-08 16:59:50,007] [Process-6] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:50,086] [Process-6] [INFO] Processed 69 files
-[2025-12-08 16:59:50,619] [Process-8] [INFO] Loaded stimuli from audiobook_5_2.npz.gz with shape (43664009,)
-[2025-12-08 16:59:50,619] [Process-8] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:51,538] [Process-8] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:51,647] [Process-8] [INFO] Processed 70 files
-[2025-12-08 16:59:52,791] [Process-1] [INFO] Loaded stimuli from audiobook_14_1.npz.gz with shape (50507442,)
-[2025-12-08 16:59:52,791] [Process-1] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:54,378] [Process-5] [INFO] Loaded stimuli from audiobook_3.npz.gz with shape (46197606,)
-[2025-12-08 16:59:54,378] [Process-5] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:54,459] [Process-7] [INFO] Loaded stimuli from podcast_11.npz.gz with shape (43200262,)
-[2025-12-08 16:59:54,459] [Process-7] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:54,721] [Process-1] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:54,881] [Process-1] [INFO] Processed 71 files
-[2025-12-08 16:59:55,477] [Process-7] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:55,524] [Process-5] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:55,581] [Process-7] [INFO] Processed 72 files
-[2025-12-08 16:59:55,684] [Process-5] [INFO] Processed 73 files
-[2025-12-08 16:59:56,622] [Process-3] [INFO] Loaded stimuli from podcast_29.npz.gz with shape (43266021,)
-[2025-12-08 16:59:56,622] [Process-3] [INFO] Running step MelSpectrogram (2/3)
-[2025-12-08 16:59:57,513] [Process-3] [INFO] Running step Save (3/3)
-[2025-12-08 16:59:57,661] [Process-3] [INFO] Processed 74 files
-[2025-12-08 16:59:57,706] [MainProcess] [INFO] When running the previous pipeline, no exception occurred.
+[2025-12-26 19:42:32,769] [MainProcess] [INFO] Start running pipeline: 1 / 1
+[2025-12-26 19:42:32,826] [MainProcess] [INFO] Started worker process 2639002
+[2025-12-26 19:42:35,703] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:42:40,827] [Process-1] [INFO] Loaded stimuli from podcast_20.npz.gz with shape (38218188,)
+[2025-12-26 19:42:40,828] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:44:47,474] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:45:00,880] [Process-1] [INFO] Processed 1 files
+[2025-12-26 19:45:00,886] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:45:07,188] [Process-1] [INFO] Loaded stimuli from podcast_19.npz.gz with shape (49095158,)
+[2025-12-26 19:45:07,188] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:47:25,077] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:47:41,978] [Process-1] [INFO] Processed 2 files
+[2025-12-26 19:47:41,983] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:47:47,992] [Process-1] [INFO] Loaded stimuli from podcast_5.npz.gz with shape (47775522,)
+[2025-12-26 19:47:47,992] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:49:46,200] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:50:02,567] [Process-1] [INFO] Processed 3 files
+[2025-12-26 19:50:02,572] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:50:09,113] [Process-1] [INFO] Loaded stimuli from podcast_31.npz.gz with shape (42592828,)
+[2025-12-26 19:50:09,113] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:51:58,929] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:52:13,216] [Process-1] [INFO] Processed 4 files
+[2025-12-26 19:52:13,221] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:52:13,941] [Process-1] [INFO] Loaded stimuli from audiobook_7_5.npz.gz with shape (5731296,)
+[2025-12-26 19:52:13,941] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:52:28,791] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:52:30,781] [Process-1] [INFO] Processed 5 files
+[2025-12-26 19:52:30,782] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:52:35,754] [Process-1] [INFO] Loaded stimuli from audiobook_2_1.npz.gz with shape (37963799,)
+[2025-12-26 19:52:35,755] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:54:11,072] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:54:24,141] [Process-1] [INFO] Processed 6 files
+[2025-12-26 19:54:24,147] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:54:28,462] [Process-1] [INFO] Loaded stimuli from audiobook_2_2.npz.gz with shape (36559852,)
+[2025-12-26 19:54:28,462] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:56:10,170] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:56:22,631] [Process-1] [INFO] Processed 7 files
+[2025-12-26 19:56:22,636] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:56:29,361] [Process-1] [INFO] Loaded stimuli from podcast_34.npz.gz with shape (46215168,)
+[2025-12-26 19:56:29,361] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 19:58:31,838] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 19:58:46,978] [Process-1] [INFO] Processed 8 files
+[2025-12-26 19:58:46,987] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 19:58:50,927] [Process-1] [INFO] Loaded stimuli from audiobook_10_1.npz.gz with shape (29542531,)
+[2025-12-26 19:58:50,927] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:00:21,671] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:00:31,919] [Process-1] [INFO] Processed 9 files
+[2025-12-26 20:00:31,925] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:00:37,691] [Process-1] [INFO] Loaded stimuli from audiobook_5_1.npz.gz with shape (43493213,)
+[2025-12-26 20:00:37,691] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:02:57,025] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:03:11,198] [Process-1] [INFO] Processed 10 files
+[2025-12-26 20:03:11,203] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:03:12,180] [Process-1] [INFO] Loaded stimuli from audiobook_7_6.npz.gz with shape (5809095,)
+[2025-12-26 20:03:12,180] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:03:27,697] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:03:29,844] [Process-1] [INFO] Processed 11 files
+[2025-12-26 20:03:29,845] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:03:34,331] [Process-1] [INFO] Loaded stimuli from podcast_22.npz.gz with shape (30166623,)
+[2025-12-26 20:03:34,331] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:04:51,679] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:05:02,226] [Process-1] [INFO] Processed 12 files
+[2025-12-26 20:05:02,231] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:05:04,805] [Process-1] [INFO] Loaded stimuli from audiobook_1_2_shifted.npz.gz with shape (20096700,)
+[2025-12-26 20:05:04,806] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:06:11,426] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:06:18,519] [Process-1] [INFO] Processed 13 files
+[2025-12-26 20:06:18,522] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:06:23,015] [Process-1] [INFO] Loaded stimuli from podcast_13.npz.gz with shape (33767425,)
+[2025-12-26 20:06:23,015] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:07:58,190] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:08:09,686] [Process-1] [INFO] Processed 14 files
+[2025-12-26 20:08:09,690] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:08:15,328] [Process-1] [INFO] Loaded stimuli from audiobook_9_2.npz.gz with shape (42288157,)
+[2025-12-26 20:08:15,329] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:10:14,273] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:10:28,256] [Process-1] [INFO] Processed 15 files
+[2025-12-26 20:10:28,262] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:10:35,074] [Process-1] [INFO] Loaded stimuli from podcast_30.npz.gz with shape (46706661,)
+[2025-12-26 20:10:35,074] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:12:35,272] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:12:51,413] [Process-1] [INFO] Processed 16 files
+[2025-12-26 20:12:51,420] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:12:55,428] [Process-1] [INFO] Loaded stimuli from audiobook_10_2.npz.gz with shape (31270531,)
+[2025-12-26 20:12:55,428] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:14:15,294] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:14:25,836] [Process-1] [INFO] Processed 17 files
+[2025-12-26 20:14:25,841] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:14:31,895] [Process-1] [INFO] Loaded stimuli from podcast_28.npz.gz with shape (38775467,)
+[2025-12-26 20:14:31,895] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:16:12,400] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:16:25,230] [Process-1] [INFO] Processed 18 files
+[2025-12-26 20:16:25,237] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:16:31,602] [Process-1] [INFO] Loaded stimuli from podcast_4.npz.gz with shape (47403259,)
+[2025-12-26 20:16:31,602] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:18:41,521] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:18:57,190] [Process-1] [INFO] Processed 19 files
+[2025-12-26 20:18:57,198] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:18:59,001] [Process-1] [INFO] Loaded stimuli from audiobook_1_artefact.npz.gz with shape (14416720,)
+[2025-12-26 20:18:59,001] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:19:45,128] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:19:50,118] [Process-1] [INFO] Processed 20 files
+[2025-12-26 20:19:50,121] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:19:56,139] [Process-1] [INFO] Loaded stimuli from podcast_1.npz.gz with shape (45788265,)
+[2025-12-26 20:19:56,139] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:22:04,737] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:22:20,408] [Process-1] [INFO] Processed 21 files
+[2025-12-26 20:22:20,416] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:22:22,465] [Process-1] [INFO] Loaded stimuli from audiobook_7_1.npz.gz with shape (11794742,)
+[2025-12-26 20:22:22,465] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:22:56,097] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:23:00,055] [Process-1] [INFO] Processed 22 files
+[2025-12-26 20:23:00,059] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:23:02,587] [Process-1] [INFO] Loaded stimuli from audiobook_1_2.npz.gz with shape (20096700,)
+[2025-12-26 20:23:02,587] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:24:09,727] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:24:16,836] [Process-1] [INFO] Processed 23 files
+[2025-12-26 20:24:16,839] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:24:23,139] [Process-1] [INFO] Loaded stimuli from podcast_8.npz.gz with shape (48628716,)
+[2025-12-26 20:24:23,139] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:26:56,465] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:27:12,842] [Process-1] [INFO] Processed 24 files
+[2025-12-26 20:27:12,852] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:27:17,532] [Process-1] [INFO] Loaded stimuli from audiobook_8_2.npz.gz with shape (37399406,)
+[2025-12-26 20:27:17,532] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:28:59,581] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:29:11,993] [Process-1] [INFO] Processed 25 files
+[2025-12-26 20:29:11,999] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:29:15,748] [Process-1] [INFO] Loaded stimuli from audiobook_11_2.npz.gz with shape (28578299,)
+[2025-12-26 20:29:15,748] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:30:37,367] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:30:47,214] [Process-1] [INFO] Processed 26 files
+[2025-12-26 20:30:47,219] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:30:53,070] [Process-1] [INFO] Loaded stimuli from audiobook_1.npz.gz with shape (44967811,)
+[2025-12-26 20:30:53,070] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:32:57,482] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:33:12,654] [Process-1] [INFO] Processed 27 files
+[2025-12-26 20:33:12,662] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:33:17,355] [Process-1] [INFO] Loaded stimuli from audiobook_12_2.npz.gz with shape (36479138,)
+[2025-12-26 20:33:17,355] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:34:56,283] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:35:08,228] [Process-1] [INFO] Processed 28 files
+[2025-12-26 20:35:08,234] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:35:14,399] [Process-1] [INFO] Loaded stimuli from podcast_7.npz.gz with shape (47282330,)
+[2025-12-26 20:35:14,399] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:37:23,667] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:37:39,878] [Process-1] [INFO] Processed 29 files
+[2025-12-26 20:37:39,887] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:37:45,469] [Process-1] [INFO] Loaded stimuli from podcast_6.npz.gz with shape (40547328,)
+[2025-12-26 20:37:45,469] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:39:37,997] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:39:51,359] [Process-1] [INFO] Processed 30 files
+[2025-12-26 20:39:51,363] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:39:56,676] [Process-1] [INFO] Loaded stimuli from audiobook_6_1.npz.gz with shape (40012152,)
+[2025-12-26 20:39:56,676] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:41:46,570] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:42:00,345] [Process-1] [INFO] Processed 31 files
+[2025-12-26 20:42:00,353] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:42:05,769] [Process-1] [INFO] Loaded stimuli from podcast_10.npz.gz with shape (40095745,)
+[2025-12-26 20:42:05,769] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:43:59,052] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:44:12,603] [Process-1] [INFO] Processed 32 files
+[2025-12-26 20:44:12,610] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:44:18,827] [Process-1] [INFO] Loaded stimuli from audiobook_5_3.npz.gz with shape (45742238,)
+[2025-12-26 20:44:18,827] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:46:32,353] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:46:47,026] [Process-1] [INFO] Processed 33 files
+[2025-12-26 20:46:47,033] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:46:54,533] [Process-1] [INFO] Loaded stimuli from podcast_2.npz.gz with shape (54468999,)
+[2025-12-26 20:46:54,533] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:49:33,893] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:49:50,338] [Process-1] [INFO] Processed 34 files
+[2025-12-26 20:49:50,347] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:49:56,619] [Process-1] [INFO] Loaded stimuli from podcast_15.npz.gz with shape (44244602,)
+[2025-12-26 20:49:56,619] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:52:02,958] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:52:16,169] [Process-1] [INFO] Processed 35 files
+[2025-12-26 20:52:16,177] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:52:23,733] [Process-1] [INFO] Loaded stimuli from podcast_24.npz.gz with shape (47657378,)
+[2025-12-26 20:52:23,734] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:54:44,124] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:54:58,419] [Process-1] [INFO] Processed 36 files
+[2025-12-26 20:54:58,428] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:55:05,621] [Process-1] [INFO] Loaded stimuli from podcast_12.npz.gz with shape (50503680,)
+[2025-12-26 20:55:05,622] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:57:30,694] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:57:46,366] [Process-1] [INFO] Processed 37 files
+[2025-12-26 20:57:46,376] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:57:51,754] [Process-1] [INFO] Loaded stimuli from audiobook_6_2.npz.gz with shape (40003855,)
+[2025-12-26 20:57:51,754] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 20:59:44,117] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 20:59:56,589] [Process-1] [INFO] Processed 38 files
+[2025-12-26 20:59:56,597] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 20:59:58,214] [Process-1] [INFO] Loaded stimuli from audiobook_7_3.npz.gz with shape (11303390,)
+[2025-12-26 20:59:58,214] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:00:36,931] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:00:40,425] [Process-1] [INFO] Processed 39 files
+[2025-12-26 21:00:40,428] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:00:45,773] [Process-1] [INFO] Loaded stimuli from audiobook_13_2.npz.gz with shape (40870022,)
+[2025-12-26 21:00:45,773] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:02:43,044] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:02:54,989] [Process-1] [INFO] Processed 40 files
+[2025-12-26 21:02:54,995] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:02:57,701] [Process-1] [INFO] Loaded stimuli from audiobook_1_1.npz.gz with shape (21955710,)
+[2025-12-26 21:02:57,701] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:04:01,126] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:04:07,895] [Process-1] [INFO] Processed 41 files
+[2025-12-26 21:04:07,898] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:04:10,249] [Process-1] [INFO] Loaded stimuli from audiobook_6_1_swn.npz.gz with shape (15672052,)
+[2025-12-26 21:04:10,249] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:04:54,896] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:04:59,815] [Process-1] [INFO] Processed 42 files
+[2025-12-26 21:04:59,819] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:05:06,002] [Process-1] [INFO] Loaded stimuli from podcast_17.npz.gz with shape (43799894,)
+[2025-12-26 21:05:06,002] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:07:03,933] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:07:16,749] [Process-1] [INFO] Processed 43 files
+[2025-12-26 21:07:16,756] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:07:20,671] [Process-1] [INFO] Loaded stimuli from audiobook_12_1.npz.gz with shape (31679138,)
+[2025-12-26 21:07:20,671] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:08:48,271] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:08:57,614] [Process-1] [INFO] Processed 44 files
+[2025-12-26 21:08:57,620] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:09:02,876] [Process-1] [INFO] Loaded stimuli from podcast_33.npz.gz with shape (34105344,)
+[2025-12-26 21:09:02,876] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:10:35,664] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:10:45,740] [Process-1] [INFO] Processed 45 files
+[2025-12-26 21:10:45,747] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:10:51,240] [Process-1] [INFO] Loaded stimuli from podcast_37.npz.gz with shape (41017400,)
+[2025-12-26 21:10:51,240] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:12:48,936] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:13:01,670] [Process-1] [INFO] Processed 46 files
+[2025-12-26 21:13:01,677] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:13:08,703] [Process-1] [INFO] Loaded stimuli from podcast_32.npz.gz with shape (45296745,)
+[2025-12-26 21:13:08,703] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:15:12,406] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:15:25,626] [Process-1] [INFO] Processed 47 files
+[2025-12-26 21:15:25,635] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:15:34,014] [Process-1] [INFO] Loaded stimuli from podcast_35.npz.gz with shape (44936186,)
+[2025-12-26 21:15:34,014] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:17:37,281] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:17:50,392] [Process-1] [INFO] Processed 48 files
+[2025-12-26 21:17:50,399] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:17:57,980] [Process-1] [INFO] Loaded stimuli from podcast_9.npz.gz with shape (57187962,)
+[2025-12-26 21:17:57,980] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:20:22,423] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:20:39,384] [Process-1] [INFO] Processed 49 files
+[2025-12-26 21:20:39,393] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:20:42,494] [Process-1] [INFO] Loaded stimuli from audiobook_1_1_shifted.npz.gz with shape (21955710,)
+[2025-12-26 21:20:42,494] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:21:43,357] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:21:50,294] [Process-1] [INFO] Processed 50 files
+[2025-12-26 21:21:50,297] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:21:57,615] [Process-1] [INFO] Loaded stimuli from podcast_36.npz.gz with shape (44333210,)
+[2025-12-26 21:21:57,616] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:23:52,594] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:24:05,520] [Process-1] [INFO] Processed 51 files
+[2025-12-26 21:24:05,526] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:24:13,085] [Process-1] [INFO] Loaded stimuli from podcast_25.npz.gz with shape (46574028,)
+[2025-12-26 21:24:13,085] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:26:20,867] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:26:34,839] [Process-1] [INFO] Processed 52 files
+[2025-12-26 21:26:34,846] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:26:39,392] [Process-1] [INFO] Loaded stimuli from audiobook_8_1.npz.gz with shape (35863406,)
+[2025-12-26 21:26:39,392] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:28:12,275] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:28:22,663] [Process-1] [INFO] Processed 53 files
+[2025-12-26 21:28:22,668] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:28:24,597] [Process-1] [INFO] Loaded stimuli from audiobook_7_2.npz.gz with shape (11609348,)
+[2025-12-26 21:28:24,597] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:28:55,266] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:28:59,014] [Process-1] [INFO] Processed 54 files
+[2025-12-26 21:28:59,016] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:29:03,785] [Process-1] [INFO] Loaded stimuli from audiobook_11_1.npz.gz with shape (37986299,)
+[2025-12-26 21:29:03,785] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:30:41,190] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:30:52,254] [Process-1] [INFO] Processed 55 files
+[2025-12-26 21:30:52,260] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:30:59,373] [Process-1] [INFO] Loaded stimuli from audiobook_3_noise.npz.gz with shape (46197606,)
+[2025-12-26 21:30:59,373] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:32:58,644] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:33:12,266] [Process-1] [INFO] Processed 56 files
+[2025-12-26 21:33:12,273] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:33:18,384] [Process-1] [INFO] Loaded stimuli from podcast_14.npz.gz with shape (48282645,)
+[2025-12-26 21:33:18,384] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:35:23,686] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:35:37,948] [Process-1] [INFO] Processed 57 files
+[2025-12-26 21:35:37,955] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:35:44,227] [Process-1] [INFO] Loaded stimuli from podcast_16.npz.gz with shape (37088027,)
+[2025-12-26 21:35:44,227] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:37:17,862] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:37:28,809] [Process-1] [INFO] Processed 58 files
+[2025-12-26 21:37:28,814] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:37:33,892] [Process-1] [INFO] Loaded stimuli from audiobook_4.npz.gz with shape (39044494,)
+[2025-12-26 21:37:33,892] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:39:15,365] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:39:26,734] [Process-1] [INFO] Processed 59 files
+[2025-12-26 21:39:26,740] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:39:32,537] [Process-1] [INFO] Loaded stimuli from podcast_23.npz.gz with shape (40627862,)
+[2025-12-26 21:39:32,537] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:41:12,939] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:41:25,597] [Process-1] [INFO] Processed 60 files
+[2025-12-26 21:41:25,603] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:41:32,122] [Process-1] [INFO] Loaded stimuli from audiobook_13_1.npz.gz with shape (48070021,)
+[2025-12-26 21:41:32,122] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:43:38,199] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:43:53,456] [Process-1] [INFO] Processed 61 files
+[2025-12-26 21:43:53,463] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:44:01,712] [Process-1] [INFO] Loaded stimuli from podcast_21.npz.gz with shape (50641050,)
+[2025-12-26 21:44:01,712] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:46:15,503] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:46:30,669] [Process-1] [INFO] Processed 62 files
+[2025-12-26 21:46:30,676] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:46:37,728] [Process-1] [INFO] Loaded stimuli from audiobook_14_2.npz.gz with shape (55115442,)
+[2025-12-26 21:46:37,728] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:49:00,787] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:49:17,478] [Process-1] [INFO] Processed 63 files
+[2025-12-26 21:49:17,486] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:49:25,798] [Process-1] [INFO] Loaded stimuli from podcast_18.npz.gz with shape (55370119,)
+[2025-12-26 21:49:25,799] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:51:51,535] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:52:08,200] [Process-1] [INFO] Processed 64 files
+[2025-12-26 21:52:08,207] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:52:15,440] [Process-1] [INFO] Loaded stimuli from podcast_27.npz.gz with shape (41946941,)
+[2025-12-26 21:52:15,440] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:54:02,667] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:54:14,855] [Process-1] [INFO] Processed 65 files
+[2025-12-26 21:54:14,859] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:54:21,212] [Process-1] [INFO] Loaded stimuli from podcast_26.npz.gz with shape (37903326,)
+[2025-12-26 21:54:21,213] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:56:00,392] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:56:11,579] [Process-1] [INFO] Processed 66 files
+[2025-12-26 21:56:11,583] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:56:16,355] [Process-1] [INFO] Loaded stimuli from podcast_3.npz.gz with shape (34907952,)
+[2025-12-26 21:56:16,355] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:57:47,363] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:57:58,063] [Process-1] [INFO] Processed 67 files
+[2025-12-26 21:57:58,067] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:58:02,376] [Process-1] [INFO] Loaded stimuli from audiobook_9_1.npz.gz with shape (31056157,)
+[2025-12-26 21:58:02,377] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 21:59:23,319] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 21:59:32,819] [Process-1] [INFO] Processed 68 files
+[2025-12-26 21:59:32,823] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 21:59:39,552] [Process-1] [INFO] Loaded stimuli from audiobook_5_2.npz.gz with shape (43664009,)
+[2025-12-26 21:59:39,552] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 22:01:45,990] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 22:01:59,736] [Process-1] [INFO] Processed 69 files
+[2025-12-26 22:01:59,777] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 22:02:02,396] [Process-1] [INFO] Loaded stimuli from audiobook_7_4.npz.gz with shape (15672052,)
+[2025-12-26 22:02:02,396] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 22:02:53,263] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 22:02:58,394] [Process-1] [INFO] Processed 70 files
+[2025-12-26 22:02:58,397] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 22:03:03,901] [Process-1] [INFO] Loaded stimuli from audiobook_14_1.npz.gz with shape (50507442,)
+[2025-12-26 22:03:03,901] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 22:05:20,259] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 22:05:36,046] [Process-1] [INFO] Processed 71 files
+[2025-12-26 22:05:36,070] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 22:05:43,058] [Process-1] [INFO] Loaded stimuli from audiobook_3.npz.gz with shape (46197606,)
+[2025-12-26 22:05:43,058] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 22:07:47,445] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 22:08:02,177] [Process-1] [INFO] Processed 72 files
+[2025-12-26 22:08:02,184] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 22:08:08,683] [Process-1] [INFO] Loaded stimuli from podcast_11.npz.gz with shape (43200262,)
+[2025-12-26 22:08:08,683] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 22:09:53,057] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 22:10:06,579] [Process-1] [INFO] Processed 73 files
+[2025-12-26 22:10:06,586] [Process-1] [INFO] Running step LoadStimuli (1/3)
+[2025-12-26 22:10:13,737] [Process-1] [INFO] Loaded stimuli from podcast_29.npz.gz with shape (43266021,)
+[2025-12-26 22:10:13,737] [Process-1] [INFO] Running step Wav2Vec (2/3)
+[2025-12-26 22:12:04,745] [Process-1] [INFO] Running step Save (3/3)
+[2025-12-26 22:12:18,080] [Process-1] [INFO] Processed 74 files
+[2025-12-26 22:12:18,668] [MainProcess] [INFO] When running the previous pipeline, no exception occurred.

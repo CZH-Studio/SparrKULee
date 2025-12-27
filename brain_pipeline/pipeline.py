@@ -200,58 +200,69 @@ def start(pipeline_config: PipelineConfig, executions: list["ExecutionConfig"]):
         pipeline_config.log_path, log_queue, pipeline_config.overwrite_log
     )
 
-    for idx, execution in enumerate(executions):
-        logger.info(f"Start running pipeline: {idx+1} / {len(executions)}")
-        # init variables
-        input_queue: mp.Queue[Path | None] = mp.Queue()
-        output_queue: mp.Queue = mp.Queue()
-        counter = mp.Value("i", execution.dataloader.skip)
-        lock = mp.Lock()
-        # push files
-        for filepath in execution.dataloader:
-            input_queue.put(filepath)
-        for _ in range(execution.num_processes * 2):
-            input_queue.put(None)
-        # start processes
-        processes: list[mp.Process] = []
-        for _ in range(execution.num_processes):
-            runner = PipelineRunner(
-                execution.pipeline, input_queue, output_queue, log_queue, counter, lock
-            )
-            process = mp.Process(target=runner)
-            process.start()
-            logger.info(f"Started worker process {process.pid}")
-            processes.append(process)
-        # wait for processes
-        for process in processes:
-            process.join()
-        # consume output queue
-        output_queue.put(None)  # 结束标志
-        occurred_exception: List[int] = []
-        pointer = execution.dataloader.skip
-        while True:
-            output_item = output_queue.get()
-            if output_item is None:
-                break
-            pointer += 1
-            if isinstance(output_item, dict):
-                return_code = output_item.get(DefaultKeys.RETURN_CODE, 1)
+    try:
+        for idx, execution in enumerate(executions):
+            logger.info(f"Start running pipeline: {idx+1} / {len(executions)}")
+            # init variables
+            input_queue: mp.Queue[Path | None] = mp.Queue()
+            output_queue: mp.Queue = mp.Queue()
+            counter = mp.Value("i", execution.dataloader.skip)
+            lock = mp.Lock()
+            # push files
+            for filepath in execution.dataloader:
+                input_queue.put(filepath)
+            for _ in range(execution.num_processes * 2):
+                input_queue.put(None)
+            # start processes
+            processes: list[mp.Process] = []
+            for _ in range(execution.num_processes):
+                runner = PipelineRunner(
+                    execution.pipeline,
+                    input_queue,
+                    output_queue,
+                    log_queue,
+                    counter,
+                    lock,
+                )
+                process = mp.Process(target=runner)
+                process.start()
+                logger.info(f"Started worker process {process.pid}")
+                processes.append(process)
+            # wait for processes
+            for process in processes:
+                process.join()
+            # consume output queue
+            output_queue.put(None)  # 结束标志
+            occurred_exception: List[int] = []
+            pointer = execution.dataloader.skip
+            while True:
+                output_item = output_queue.get()
+                if output_item is None:
+                    break
+                pointer += 1
+                if isinstance(output_item, dict):
+                    return_code = output_item.get(DefaultKeys.RETURN_CODE, 1)
+                else:
+                    return_code = 1
+                if return_code != 0:
+                    occurred_exception.append(pointer)
+            if len(occurred_exception) > 0:
+                logger.warning(
+                    f"When running the previous pipeline, exceptions occurred with the following files:\n"
+                    f"{', '.join(map(str, occurred_exception))}"
+                )
             else:
-                return_code = 1
-            if return_code != 0:
-                occurred_exception.append(pointer)
-        if len(occurred_exception) > 0:
-            logger.warning(
-                f"When running the previous pipeline, exceptions occurred with the following files:\n"
-                f"{', '.join(map(str, occurred_exception))}"
-            )
-        else:
-            logger.info(f"When running the previous pipeline, no exception occurred.")
-        # clean up
-        input_queue.close()
-        input_queue.join_thread()
-        output_queue.close()
-        output_queue.join_thread()
-    listener.stop()
-    log_queue.close()
-    log_queue.join_thread()
+                logger.info(
+                    f"When running the previous pipeline, no exception occurred."
+                )
+            # clean up
+            input_queue.close()
+            input_queue.join_thread()
+            output_queue.close()
+            output_queue.join_thread()
+    except KeyboardInterrupt:
+        logger.warning("KeyboardInterrupt received, terminating...")
+    finally:
+        listener.stop()
+        log_queue.close()
+        log_queue.join_thread()

@@ -195,7 +195,13 @@ class Wav2Vec(Step):
         self.overlap = overlap
         self.segment_length = segment_length
         self.target_sr = target_sr
-        self.model = Wav2Vec2ForCTC.from_pretrained(model_name)
+        self._model = None
+
+    @property
+    def model(self):
+        if self._model is None:
+            self._model = Wav2Vec2ForCTC.from_pretrained(self.model_name)
+        return self._model
 
     def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
         audio_data, audio_sr = [input_data[key] for key in self.input_keys]
@@ -250,4 +256,5 @@ class Wav2Vec(Step):
             num_samples = round(np.size(stacked, axis=0) * float(self.target_sr) / 50)
             stacked = scipy.signal.resample(stacked, num_samples)
             outputs[k] = stacked
-        return dict(zip(self.output_keys, [outputs]))
+        output_list = list(outputs.values())
+        return dict(zip(self.output_keys, output_list))
