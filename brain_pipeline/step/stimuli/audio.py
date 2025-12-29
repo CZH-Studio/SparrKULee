@@ -8,6 +8,7 @@ import librosa
 from brian2 import Hz
 from brian2hears import Sound, erbspace, Gammatone, Filterbank
 import scipy
+from scipy import signal
 from transformers import Wav2Vec2ForCTC
 
 from brain_pipeline.step.step import Step
@@ -179,6 +180,18 @@ class Wav2Vec(Step):
         segment_length: int = 8,
         target_sr: int = 64,
     ):
+        """Get Wav2Vec representation
+
+        Args:
+            input_keys (OptionalKey, optional): You must assign [data, sr]. Defaults to [DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR].
+            output_keys (OptionalKey, optional): You must assign [data]. Defaults to [DefaultKeys.TMP_STIMULI_DATA].
+            model_name (str, optional): model name or path. Defaults to "".
+            lang (str, optional): language to use. Defaults to "en".
+            extract_layers (Optional[list[int]], optional): layers to extract representations. Defaults to [19].
+            overlap (int, optional): extended overlap for each segment. Defaults to 2.
+            segment_length (int, optional): segment length in seconds. Defaults to 8.
+            target_sr (int, optional): target sample rate. Defaults to 64.
+        """
         super().__init__(
             input_keys,
             [DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR],
@@ -208,6 +221,12 @@ class Wav2Vec(Step):
         audio_data: NDArray
         audio_sr: int
 
+        if audio_sr != 16000:
+            logger.warning(
+                f"Audio sample rate is {audio_sr}, but Wav2Vec requires 16000, performing resampling."
+            )
+            audio_data = signal.resample_poly(audio_data, 16000, audio_sr)
+
         if audio_data.ndim == 1:
             audio_data = np.expand_dims(audio_data, axis=0)
         segment_length = self.segment_length * audio_sr
@@ -221,9 +240,7 @@ class Wav2Vec(Step):
             axis=1,
         )
         eof = False
-        outputs = {}
-        for layer in self.extract_layers:
-            outputs[layer] = []
+        outputs = {layer: [] for layer in self.extract_layers}
         for i in range(int(audio_length / segment_length) + 1):
             start = i * segment_length
             end = start + segment_length + self.overlap * audio_sr
@@ -245,7 +262,9 @@ class Wav2Vec(Step):
                 out = out.numpy()
                 out = np.squeeze(out)
                 if eof:
-                    out = out[int(self.overlap / 2) * 50 :]
+                    out = out[
+                        int(self.overlap / 2) * 50 :
+                    ]  # in wav2vec2, the converted sample rate is 50Hz
                 else:
                     out = out[
                         int(self.overlap / 2) * 50 : -int(self.overlap / 2) * 50 + 1, :

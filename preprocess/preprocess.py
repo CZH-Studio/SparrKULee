@@ -35,33 +35,38 @@ EEG_512_LOW_GAMMA = "eeg-512-low-gamma"
 stimulus_pipeline = Pipeline(
     steps=[
         LoadStimuli(),
-        # GammatoneEnvelope(),
-        # ResamplePoly(
-        #     input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
-        #     output_keys=[ENVELOPE_64_BOARD_BAND],
-        #     target_sr=64,
-        # ),
-        # Save(
-        #     input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
-        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        # ),
-        # GC([ENVELOPE_64_BOARD_BAND]),
-        # ResamplePoly(
-        #     input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
-        #     output_keys=[ENVELOPE_512_BOARD_BAND],
-        #     target_sr=512,
-        # ),
-        # Save(
-        #     input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
-        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        # ),
-        # GC([ENVELOPE_512_BOARD_BAND]),
-        # MelSpectrogram(output_keys=[MEL_64, DefaultKeys.MEL_SR]),
-        # Save(
-        #     input_keys=[DefaultKeys.I_STI_PATH, MEL_64],
-        #     filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
-        # ),
-        # GC([MEL_64]),
+        GammatoneEnvelope(),
+        ResamplePoly(
+            input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
+            output_keys=[ENVELOPE_64_BOARD_BAND, DefaultKeys.RESAMPLED_SR],
+            target_sr=64,
+        ),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_64_BOARD_BAND],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
+        GC([ENVELOPE_64_BOARD_BAND]),
+        ResamplePoly(
+            input_keys=[DefaultKeys.ENVELOPE_DATA, DefaultKeys.I_STI_SR],
+            output_keys=[ENVELOPE_512_BOARD_BAND, DefaultKeys.RESAMPLED_SR],
+            target_sr=512,
+        ),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, ENVELOPE_512_BOARD_BAND],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
+        GC([ENVELOPE_512_BOARD_BAND]),
+        MelSpectrogram(output_keys=[MEL_64, DefaultKeys.MEL_SR]),
+        Save(
+            input_keys=[DefaultKeys.I_STI_PATH, MEL_64],
+            filepath_fn=FilepathFn(DATASET_PROCESSED_DIR, "stimulus"),
+        ),
+        GC([MEL_64]),
+        ResamplePoly(
+            input_keys=[DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR],
+            output_keys=[DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR],
+            target_sr=16000,
+        ),
         Wav2Vec(
             input_keys=[DefaultKeys.I_STI_DATA, DefaultKeys.I_STI_SR],
             output_keys=[WAV2VEC_64],
@@ -95,7 +100,10 @@ eeg_pipeline = Pipeline(
             1,
         ),
         ResamplePoly(
-            [EEG_64_BOARD_BAND, DefaultKeys.I_EEG_SR], [EEG_64_BOARD_BAND], 64, 1
+            [EEG_64_BOARD_BAND, DefaultKeys.I_EEG_SR],
+            [EEG_64_BOARD_BAND, DefaultKeys.RESAMPLED_SR],
+            64,
+            1,
         ),
         Save(
             [DefaultKeys.I_EEG_PATH, DefaultKeys.I_STI_PATH, EEG_64_BOARD_BAND],
@@ -111,7 +119,10 @@ eeg_pipeline = Pipeline(
             1,
         ),
         ResamplePoly(
-            [EEG_512_LOW_GAMMA, DefaultKeys.I_EEG_SR], [EEG_512_LOW_GAMMA], 512, 1
+            [EEG_512_LOW_GAMMA, DefaultKeys.I_EEG_SR],
+            [EEG_512_LOW_GAMMA, DefaultKeys.RESAMPLED_SR],
+            512,
+            1,
         ),
         Save(
             [DefaultKeys.I_EEG_PATH, DefaultKeys.I_STI_PATH, EEG_512_LOW_GAMMA],
@@ -139,15 +150,15 @@ def main():
             pipeline=stimulus_pipeline,
             num_processes=1,
         ),
-        # ExecutionConfig(
-        #     dataloader=GlobDataloader(
-        #         config.input_dir,
-        #         "sub-*/*/eeg/*.bdf.gz",
-        #         r"^sub-\d+_ses-[^_]+_task-(?!restingState)[^_]+_run-\d+_eeg\.bdf\.gz$",
-        #     ),
-        #     pipeline=eeg_pipeline,
-        #     num_processes=4,
-        # ),
+        ExecutionConfig(
+            dataloader=GlobDataloader(
+                config.input_dir,
+                "sub-*/*/eeg/*.bdf.gz",
+                r"^sub-\d+_ses-[^_]+_task-(?!restingState)[^_]+_run-\d+_eeg\.bdf\.gz$",
+            ),
+            pipeline=eeg_pipeline,
+            num_processes=4,
+        ),
     ]
     start(config, executions)
 

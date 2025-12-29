@@ -8,8 +8,9 @@ from brain_pipeline import Key, OptionalKey, DefaultKeys
 
 
 class ResamplePoly(Step):
-    def __init__(self, input_keys: Key, output_keys: OptionalKey,
-                 target_sr: int, axis: int = 0):
+    def __init__(
+        self, input_keys: Key, output_keys: OptionalKey, target_sr: int, axis: int = 0
+    ):
         """
         Resample data using polyphase filtering.
         :param input_keys: [data, input_sr]
@@ -20,24 +21,28 @@ class ResamplePoly(Step):
             input_keys,
             [],
             output_keys,
-            [DefaultKeys.RESAMPLED_DATA]
+            [DefaultKeys.RESAMPLED_DATA, DefaultKeys.RESAMPLED_SR],
         )
-        self.assert_keys_num('==', 2, '==', 1)
+        self.assert_keys_num("==", 2, "==", 2)
         self.target_sr = target_sr
         self.axis = axis
 
     def __call__(self, input_data: Dict[str, Any], logger: Logger):
         data, original_sr = [input_data[k] for k in self.input_keys]
         data = signal.resample_poly(data, self.target_sr, original_sr, axis=self.axis)
-        return dict(zip(
-            self.output_keys,
-            [data]
-        ))
+        return dict(zip(self.output_keys, [data, self.target_sr]))
 
 
 class SosFilter(Step):
-    def __init__(self, input_keys: OptionalKey, output_keys: OptionalKey,
-                 n: int, window, btype: str, axis: int = -1):
+    def __init__(
+        self,
+        input_keys: OptionalKey,
+        output_keys: OptionalKey,
+        n: int,
+        window,
+        btype: str,
+        axis: int = -1,
+    ):
         """
         对数据应用零相位滤波
         :param input_keys: [data, sr]
@@ -49,14 +54,11 @@ class SosFilter(Step):
         """
         super().__init__(
             input_keys,
-            [
-                DefaultKeys.I_EEG_DATA,
-                DefaultKeys.I_EEG_SR
-            ],
+            [DefaultKeys.I_EEG_DATA, DefaultKeys.I_EEG_SR],
             output_keys,
-            [DefaultKeys.FILTERED_DATA]
+            [DefaultKeys.FILTERED_DATA],
         )
-        self.assert_keys_num('==', 2, '==', 1)
+        self.assert_keys_num("==", 2, "==", 1)
         self.n = n
         self.window = window
         self.btype = btype
@@ -65,10 +67,7 @@ class SosFilter(Step):
     def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
         data, sr = [input_data[k] for k in self.input_keys]
         # 设计一个滤波器
-        sos = signal.butter(self.n, self.window, self.btype, fs=sr, output='sos')
+        sos = signal.butter(self.n, self.window, self.btype, fs=sr, output="sos")
         # 应用滤波器
         data = signal.sosfiltfilt(sos, data, axis=self.axis)
-        return dict(zip(
-            self.output_keys,
-            [data]
-        ))
+        return dict(zip(self.output_keys, [data]))

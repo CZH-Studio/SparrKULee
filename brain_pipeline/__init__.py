@@ -82,6 +82,8 @@ class DefaultKeys(StrEnum):
     """梅尔谱图的采样率"""
     RESAMPLED_DATA = "resampled_data"
     """重采样后的数据"""
+    RESAMPLED_SR = "resampled_sr"
+    """重采样后的采样率"""
     RETURN_CODE = "return_code"
     """在context中，输出结果的状态（成功与否）"""
 
