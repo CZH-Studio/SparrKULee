@@ -57,13 +57,14 @@ def get_dataloader(
         features,
     )
     sampler = SparrKULeeSampler(dataset, num_replicas, rank, shuffle, seed)
-    num_workers = 4 if sys.platform.startswith("linux") else 1
+    num_workers = 2 if sys.platform.startswith("linux") else 1
     dataloader = DataLoader(
         dataset=dataset,
         batch_size=batch_size,
         sampler=sampler,
         collate_fn=collate_fn_stack,
         num_workers=num_workers,
+        pin_memory=False,
     )
     return dataloader
 
