@@ -1,6 +1,9 @@
-name: cl-cls
-class: cl.CLClsModel
+name: cl-clip-bank
+class: cl.CLIPMemoryBankModel
 params:
+  temperature: 0.075
+  lambda_inst: 0.7
+  lambda_prototype: 0.3
   eeg_encoder:
     input_channels: 64
     hidden_channels: 64

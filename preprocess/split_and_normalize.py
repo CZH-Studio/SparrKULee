@@ -28,7 +28,7 @@ def main():
     # stimuli存放在 root/stimuli/{stimuli_name}/{stimuli_name}_{key}.pt
     # 为每一个eeg文件的key设置与之相对应的stimuli文件的key
     mapping = {
-        "eeg-64-board-band": ["envelope-64-board-band", "mel-64"],
+        "eeg-64-board-band": ["envelope-64-board-band", "mel-64", "wav2vec-64"],
         "eeg-512-low-gamma": ["envelope-512-board-band"],
     }
     # 每一个EEG文件都需要找到与之相匹配的刺激文件
@@ -93,23 +93,27 @@ def main():
                     )
                     save_dir.mkdir(exist_ok=True, parents=True, mode=0o777)
                     save_eeg_name = f"{split_name}_{subject}_{session}_{task}_{run}_{stimuli}_{feature}.pt"
-                    fd = os.open(
-                        save_dir / save_eeg_name,
-                        os.O_CREAT | os.O_WRONLY | os.O_TRUNC,
-                        0o777,
-                    )
-                    with os.fdopen(fd, "wb") as f:
-                        torch.save(eeg_split, f)
-                    for j, k in enumerate(stimuli_features):
-                        save_stimuli_name = f"{split_name}_{subject}_{session}_{task}_{run}_{stimuli}_{k}.pt"
+                    save_eeg_path = save_dir / save_eeg_name
+                    if not save_eeg_path.exists():
                         fd = os.open(
-                            save_dir / save_stimuli_name,
+                            save_dir / save_eeg_name,
                             os.O_CREAT | os.O_WRONLY | os.O_TRUNC,
                             0o777,
                         )
                         with os.fdopen(fd, "wb") as f:
-                            torch.save(stimulus_split[j], f)
-                        # 更新指针
+                            torch.save(eeg_split, f)
+                    for j, k in enumerate(stimuli_features):
+                        save_stimuli_name = f"{split_name}_{subject}_{session}_{task}_{run}_{stimuli}_{k}.pt"
+                        save_stimuli_path = save_dir / save_stimuli_name
+                        if not save_stimuli_path.exists():
+                            fd = os.open(
+                                save_dir / save_stimuli_name,
+                                os.O_CREAT | os.O_WRONLY | os.O_TRUNC,
+                                0o777,
+                            )
+                            with os.fdopen(fd, "wb") as f:
+                                torch.save(stimulus_split[j], f)
+                            # 更新指针
                     pointer += split_length
 
 
