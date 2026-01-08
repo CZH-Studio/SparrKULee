@@ -17,6 +17,9 @@ import argparse
 
 import yaml
 import torch
+import lightning.pytorch as pl
+from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
+from lightning.pytorch.loggers import TensorBoardLogger
 
 from match_mismatch.model import get_litmodule, find_ckpt
 
@@ -56,13 +59,6 @@ def copy(src_litmodule, dst_litmodule, copy_params: list[str]):
 
 def main():
     args = parse_args()
-    src_data_config = yaml.safe_load(
-        open(
-            ROOT_DIR / "config" / "data" / f"{args.src_data}.yaml",
-            "r",
-            encoding="utf-8",
-        )
-    )
     dst_data_config = yaml.safe_load(
         open(
             ROOT_DIR / "config" / "data" / f"{args.dst_data}.yaml",
@@ -84,13 +80,6 @@ def main():
             encoding="utf-8",
         )
     )
-    src_trainer_config = yaml.safe_load(
-        open(
-            ROOT_DIR / "config" / "trainer" / f"{args.src_trainer}.yaml",
-            "r",
-            encoding="utf-8",
-        )
-    )
     dst_trainer_config = yaml.safe_load(
         open(
             ROOT_DIR / "config" / "trainer" / f"{args.dst_trainer}.yaml",
@@ -103,15 +92,50 @@ def main():
     dst_ckpt_dir.mkdir(parents=True, exist_ok=True)
     src_ckpt_path = find_ckpt(src_ckpt_dir, "best")
     dst_ckpt_path = dst_ckpt_dir / "best.ckpt"
-    src_litmodule = get_litmodule(
-        src_data_config, src_model_config, src_trainer_config, src_ckpt_path
-    )
-    dst_litmodule = get_litmodule(
+    if src_ckpt_path is None:
+        raise ValueError(f"No checkpoint found in {src_ckpt_dir}")
+    if dst_ckpt_path.exists():
+        warnings.warn(f"{dst_ckpt_path} already exists, skipping.")
+        return
+    src_litmodule = torch.load(src_ckpt_path, weights_only=True, map_location="cpu")
+    dst_litmodule, _ = get_litmodule(
         dst_data_config, dst_model_config, dst_trainer_config, None
+    )  # init a raw module
+    copy_param_names = parse_params(args.copy)
+    copy(src_litmodule, dst_litmodule, copy_param_names)
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val_loss",
+        mode="min",
+        dirpath=dst_ckpt_dir,
+        filename="best",
+        save_top_k=1,
+        save_last=True,
     )
-    copy_params = parse_params(args.copy)
-    copy(src_litmodule, dst_litmodule, copy_params)
-    torch.save(dst_litmodule, dst_ckpt_path)
+    early_stopping_callback = EarlyStopping(
+        monitor="val_loss",
+        mode="min",
+        min_delta=dst_trainer_config["early_stopping"]["min_delta"],
+        patience=dst_trainer_config["early_stopping"]["patience"],
+        verbose=True,
+    )
+    log_dir = ROOT_DIR / "tb_logs" / dst_ckpt_dir.name
+    log_dir.mkdir(exist_ok=True, parents=True)
+    tensorboard_logger = TensorBoardLogger(
+        save_dir=ROOT_DIR / "tb_logs",
+        name=dst_ckpt_dir.name,
+        version=f"version-{len(list(log_dir.iterdir()))}",
+    )
+    trainer = pl.Trainer(
+        max_epochs=dst_trainer_config["trainer"]["max_epochs"],
+        accelerator=dst_trainer_config["trainer"]["accelerator"],
+        devices=dst_trainer_config["trainer"]["devices"],
+        strategy=dst_trainer_config["trainer"]["strategy"],
+        precision=dst_trainer_config["trainer"]["precision"],
+        callbacks=[checkpoint_callback, early_stopping_callback],
+        logger=tensorboard_logger,
+        use_distributed_sampler=False,
+    )
+    trainer.save_checkpoint(dst_ckpt_path)
     print(f"Copied parameters from {src_ckpt_path} to {dst_ckpt_path}")
 
 

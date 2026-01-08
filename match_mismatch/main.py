@@ -12,9 +12,9 @@ from match_mismatch.model import get_litmodule, find_ckpt
 
 
 def train(data_config: dict, model_config: dict, trainer_config: dict, ckpt_dir: Path):
-    pl.seed_everything(data_config["seed"])
-    litmodule = get_litmodule(
-        data_config, model_config, trainer_config, find_ckpt(ckpt_dir, "last")
+    last_ckpt = find_ckpt(ckpt_dir, "last")
+    litmodule, resume = get_litmodule(
+        data_config, model_config, trainer_config, last_ckpt
     )
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
@@ -36,7 +36,7 @@ def train(data_config: dict, model_config: dict, trainer_config: dict, ckpt_dir:
     tensorboard_logger = TensorBoardLogger(
         save_dir=ROOT_DIR / "tb_logs",
         name=ckpt_dir.name,
-        version=f"version-{len(list(log_dir.iterdir()))}",
+        version=None if resume else f"version-{len(list(log_dir.iterdir()))}",
     )
     trainer = pl.Trainer(
         max_epochs=trainer_config["trainer"]["max_epochs"],
@@ -48,24 +48,29 @@ def train(data_config: dict, model_config: dict, trainer_config: dict, ckpt_dir:
         logger=tensorboard_logger,
         use_distributed_sampler=False,
     )
-    trainer.fit(litmodule)
+    if resume:
+        print("Resuming from last checkpoint: ", last_ckpt)
+        trainer.fit(litmodule, ckpt_path=last_ckpt)
+    else:
+        trainer.fit(litmodule)
 
 
 def evaluate(
     data_config: dict, model_config: dict, trainer_config: dict, ckpt_dir: Path
 ):
-    pl.seed_everything(data_config["seed"])
     ckpt_path = find_ckpt(ckpt_dir, "best")
-    if ckpt_path is None:
+    litmodule, resume = get_litmodule(
+        data_config, model_config, trainer_config, ckpt_path
+    )
+    if not resume:
         raise ValueError("No checkpoint found.")
-    litmodule = get_litmodule(data_config, model_config, trainer_config, ckpt_path)
     trainer = pl.Trainer(
         accelerator=trainer_config["trainer"]["accelerator"],
         devices=trainer_config["trainer"]["devices"],
         strategy=trainer_config["trainer"]["strategy"],
         use_distributed_sampler=False,
     )
-    trainer.test(litmodule)
+    trainer.test(litmodule, ckpt_path=ckpt_path)
 
 
 def parse_args():

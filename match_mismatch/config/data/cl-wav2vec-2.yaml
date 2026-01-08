@@ -1,8 +1,8 @@
 root_dir: /hdd/EEG/Audio/SparrKULee/derivatives/preprocessed/split
-window_size: 5.0
+window_size: 3.0
 shift_size: 1.0
-min_spacing: 6.0
-num_classes: 5
+min_spacing: 4.0
+num_classes: 2
 features:
   random_strategy: random
   items:

@@ -41,6 +41,7 @@ def get_dataloader(
     shuffle: bool,
     seed: int,
     batch_size: int,
+    pin_memory: bool,
     num_replicas: int,
     rank: int,
 ):
@@ -57,14 +58,18 @@ def get_dataloader(
         features,
     )
     sampler = SparrKULeeSampler(dataset, num_replicas, rank, shuffle, seed)
-    num_workers = 2 if sys.platform.startswith("linux") else 1
+    num_workers = (
+        1 if sys.platform.startswith("linux") else 1
+    )  # I don't know why this must set to 0/1 on linux, or will raise BUS error.
+    torch.set_num_threads(8)
     dataloader = DataLoader(
         dataset=dataset,
         batch_size=batch_size,
         sampler=sampler,
         collate_fn=collate_fn_stack,
         num_workers=num_workers,
-        pin_memory=False,
+        pin_memory=pin_memory,
+        persistent_workers=True,
     )
     return dataloader
 
@@ -95,6 +100,7 @@ def get_dataloader_by_config(split: str, **kwargs):
     features = Features(**kwargs["features"])
     seed = kwargs["seed"]
     batch_size = kwargs["batch_size"]
+    pin_memory = kwargs.get("pin_memory", True)
     split_kwargs = kwargs["splits"][split]
     split_dirs: list[str] = split_kwargs.get("dirs", [split])
     subjects = _parse_subjects(split_kwargs["subjects"])
@@ -117,6 +123,7 @@ def get_dataloader_by_config(split: str, **kwargs):
         shuffle,
         seed,
         batch_size,
+        pin_memory,
         num_replicas,
         rank,
     )

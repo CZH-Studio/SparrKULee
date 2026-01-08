@@ -1,20 +1,28 @@
 root_dir: /hdd/EEG/Audio/SparrKULee/derivatives/preprocessed/split
-window_size: 5.0
+window_size: 3.0
 shift_size: 1.0
-min_spacing: 6.0
-num_classes: 5
+min_spacing: 4.0
+num_classes: 2
 features:
   random_strategy: random
   items:
     - name: eeg-64-board-band
       sr: 64
       is_stimuli: false
-    - name: wav2vec-64
+    - name: envelope-64-board-band
+      sr: 64
+      is_stimuli: true
+    - name: eeg-512-low-gamma
+      sr: 512
+      is_stimuli: false
+    - name: envelope-512-board-band
+      sr: 512
+      is_stimuli: true
+    - name: mel-64
       sr: 64
       is_stimuli: true
 seed: 42
 batch_size: 128
-pin_memory: true
 splits:
   train:
     subjects: 1-71
@@ -28,7 +36,7 @@ splits:
     shuffle: false
   test:
     subjects: 72-85
-    dirs: ['train', 'val', 'test']
+    dirs: [train, val, test]
     num_records: 1.0
     random_records: false
     shuffle: false

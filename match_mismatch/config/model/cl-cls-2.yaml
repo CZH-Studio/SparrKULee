@@ -1,0 +1,30 @@
+name: cl-cls
+class: cl.CLClsModel
+params:
+  eeg_encoder:
+    input_channels: 64
+    hidden_channels: 64
+    output_channels: 8
+    window_size: 192
+    num_layers: 10
+    conv_block:
+      kernel_size: 64
+      dilation: 1
+      dropout: 0.2
+    transformer:
+      d_model: 64
+      nhead: 8
+      dim_feedforward: 256
+      dropout: 0.5
+      activation: "gelu"
+  speech_encoder:
+    input_channels: 1024
+    hidden_channels: 64
+    lstm_channels: 128
+    output_channels: 8
+    window_size: 192
+    num_layers: 10
+    conv_block:
+      kernel_size: 64
+      dilation: 1
+      dropout: 0.4

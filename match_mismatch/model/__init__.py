@@ -39,7 +39,9 @@ class MemoryBank(nn.Module):
         self.embedding_dim = embedding_dim
         self.momentum = momentum
         self.register_buffer(
-            "memory", torch.rand(size + 1, embedding_dim, device=device)
+            "memory",
+            torch.rand(size + 1, embedding_dim, device=device),
+            persistent=False,
         )
 
     def forward(self, indices: torch.Tensor, x: torch.Tensor):
@@ -116,6 +118,9 @@ class MyLitModule(pl.LightningModule, ABC):
             num_replicas=self.trainer.world_size,
             rank=self.trainer.global_rank,
         )
+
+    def on_fit_start(self) -> None:
+        print("torch threads: ", torch.get_num_threads())
 
     @abstractmethod
     def forward(self, batch_data: list[torch.Tensor]):
@@ -339,8 +344,11 @@ def get_litmodule(
     model_config: dict,
     trainer_config: dict,
     ckpt_path: Path | None = None,
-) -> LitMatchMismatchModule | LitContrastLearningModule:
+) -> tuple[LitMatchMismatchModule | LitContrastLearningModule, bool]:
     """获取lit module，当指定ckpt_path时，加载ckpt，否则初始化"""
+    resume = ckpt_path is not None and ckpt_path.exists()
+    if not resume:
+        pl.seed_everything(data_config["seed"])
     model = get_model(model_config)
     optimizer_config = trainer_config["optimizer"]
     scheduler_config = trainer_config["scheduler"]
@@ -356,21 +364,9 @@ def get_litmodule(
     }
     model_class = model.__class__.__bases__[0].__name__
     litmodule_class = model_module_mapping[model_class]
-    banned_keys = set(["model"])
 
-    if ckpt_path is None or not ckpt_path.exists():
-        litmodule = litmodule_class(**kwargs)
-    else:
-        try:
-            litmodule = litmodule_class.load_from_checkpoint(
-                ckpt_path, **kwargs, strict=False
-            )
-        except TypeError:
-            litmodule = torch.load(ckpt_path)
-            for k, v in kwargs.items():
-                if k not in banned_keys:
-                    setattr(litmodule, k, v)
-    return litmodule
+    litmodule = litmodule_class(**kwargs)
+    return litmodule, resume
 
 
 def get_ensemble_litmodule(
