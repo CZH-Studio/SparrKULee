@@ -1,6 +1,6 @@
 root_dir: /hdd/EEG/Audio/SparrKULee/derivatives/preprocessed/split
 window_size: 3.0
-shift_size: 1.0
+shift_size: 3.0
 min_spacing: 4.0
 num_classes: 2
 features:
@@ -21,7 +21,7 @@ features:
     - name: mel-64
       sr: 64
       is_stimuli: true
-seed: 42
+seed: 1
 batch_size: 128
 splits:
   train:
@@ -35,8 +35,8 @@ splits:
     random_records: false
     shuffle: false
   test:
-    subjects: 72-85
-    dirs: [train, val, test]
+    subjects: 1-71
+    # dirs: [train, val, test]
     num_records: 1.0
     random_records: false
     shuffle: false

@@ -2,9 +2,7 @@
 Copy parameters from one model to another.
 Example usage:
 python -m match_mismatch.copy_params \
-    --src_data cl \
     --dst_data cl \
-    --src_model clip \
     --dst_model cl-cls \
     --copy eeg_encoder,speech_encoder \
     --src_ckpt clip_seed=1 \
@@ -14,6 +12,7 @@ python -m match_mismatch.copy_params \
 from pathlib import Path
 import warnings
 import argparse
+from typing import Any
 
 import yaml
 import torch
@@ -26,12 +25,10 @@ from match_mismatch.model import get_litmodule, find_ckpt
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--src_data", type=str, required=True)
     parser.add_argument("--dst_data", type=str, required=True)
+    parser.add_argument("--dst_trainer", type=str, default="default")
     parser.add_argument("--src_model", type=str, required=True)
     parser.add_argument("--dst_model", type=str, required=True)
-    parser.add_argument("--src_trainer", type=str, default="default")
-    parser.add_argument("--dst_trainer", type=str, default="default")
     parser.add_argument("--src_ckpt", type=str, required=True)
     parser.add_argument("--dst_ckpt", type=str, required=True)
     parser.add_argument("--copy", type=str)
@@ -44,7 +41,17 @@ def parse_params(params_str: str) -> list[str]:
     return params
 
 
-def copy(src_litmodule, dst_litmodule, copy_params: list[str]):
+def copy(src_litmodule, dst_litmodule: pl.LightningModule, copy_params: list[str]):
+    def get_dict(root: dict[str, Any], path):
+        path = "model." + path
+        # 获取模型的state_dict，这行代码的含义是：
+        # 找到所有以model.path开头的值，并返回以path后面内容为key的dict
+        # 例如：model.encoder.conv_0 -> {conv_0: value}
+        model_state = {
+            k[len(path) + 1 :]: v for k, v in root.items() if k.startswith(path)
+        }
+        return model_state
+
     def get_by_path(root, path):
         obj = root
         for p in path.split("."):
@@ -52,9 +59,13 @@ def copy(src_litmodule, dst_litmodule, copy_params: list[str]):
         return obj
 
     for p in copy_params:
-        src_module = get_by_path(src_litmodule.model, p)
+        src_module = get_dict(src_litmodule["state_dict"], p)
         dst_module = get_by_path(dst_litmodule.model, p)
-        dst_module.load_state_dict(src_module.state_dict())
+        missing, unexpected = dst_module.load_state_dict(src_module, strict=False)
+        if missing:
+            warnings.warn(f"Missing keys: {missing}")
+        if unexpected:
+            warnings.warn(f"Unexpected keys: {unexpected}")
 
 
 def main():
@@ -90,13 +101,12 @@ def main():
     src_ckpt_dir = ROOT_DIR / "ckpt" / src_model_config["name"] / args.src_ckpt
     dst_ckpt_dir = ROOT_DIR / "ckpt" / dst_model_config["name"] / args.dst_ckpt
     dst_ckpt_dir.mkdir(parents=True, exist_ok=True)
-    src_ckpt_path = find_ckpt(src_ckpt_dir, "best")
+    src_ckpt_path = find_ckpt(src_ckpt_dir, "last")
     dst_ckpt_path = dst_ckpt_dir / "best.ckpt"
     if src_ckpt_path is None:
         raise ValueError(f"No checkpoint found in {src_ckpt_dir}")
     if dst_ckpt_path.exists():
-        warnings.warn(f"{dst_ckpt_path} already exists, skipping.")
-        return
+        warnings.warn(f"{dst_ckpt_path} already exists, overriding...")
     src_litmodule = torch.load(src_ckpt_path, weights_only=True, map_location="cpu")
     dst_litmodule, _ = get_litmodule(
         dst_data_config, dst_model_config, dst_trainer_config, None
@@ -135,6 +145,7 @@ def main():
         logger=tensorboard_logger,
         use_distributed_sampler=False,
     )
+    trainer.test(dst_litmodule)
     trainer.save_checkpoint(dst_ckpt_path)
     print(f"Copied parameters from {src_ckpt_path} to {dst_ckpt_path}")
 

@@ -201,8 +201,8 @@ class CLIPModel(ContrastLearningModel):
         eeg, *speech = x
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C)
-        eeg_features = self.eeg_encoder(eeg)  # (B, E)
-        speech_features = self.speech_encoder(speech)  # (B, E)
+        eeg_features = self.eeg_encoder(eeg)  # (B, T, C)
+        speech_features = self.speech_encoder(speech)  # (B, T, C)
         # flatten
         eeg_features = eeg_features.flatten(start_dim=1)  # (B, T*C)
         speech_features = speech_features.flatten(start_dim=1)  # (B, T*C)
@@ -219,7 +219,10 @@ class MoCoModel(ContrastLearningModel):
         super().__init__()
 
         self.temperature = torch.tensor(kwargs.get("temperature", 0.07))
-        self.embedding_dim = kwargs["eeg_encoder"]["embedding_dim"]
+        self.embedding_dim = (
+            kwargs["eeg_encoder"]["output_channels"]
+            * kwargs["eeg_encoder"]["window_size"]
+        )
         self.queue_kwargs = kwargs["queue"]
         # encoders
         self.eeg_encoder = EEGEncoder(**kwargs["eeg_encoder"])
@@ -235,11 +238,13 @@ class MoCoModel(ContrastLearningModel):
     def _queue_init(self):
         self.queue_size = self.queue_kwargs.get("queue_size", 2048)
         self.register_buffer(
-            "queue", torch.randn(self.queue_size, self.embedding_dim)
+            "queue", torch.randn(self.queue_size, self.embedding_dim), persistent=False
         )  # (K, E)
         self.queue = F.normalize(self.queue, dim=1)
         self.momentum = self.queue_kwargs.get("momentum", 0.999)
-        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+        self.register_buffer(
+            "queue_ptr", torch.zeros(1, dtype=torch.long), persistent=False
+        )
 
     @torch.no_grad()
     def _momentum_update(self):
@@ -268,11 +273,13 @@ class MoCoModel(ContrastLearningModel):
         speech = torch.cat(speech, dim=-1)
         # eeg: (B, T, C1), speech: (B, T, C2)
         # use speech as query
-        q = self.speech_encoder(speech)  # (B, E)
+        q = self.speech_encoder(speech)  # (B, T, C)
+        q = q.flatten(start_dim=1)  # (B, T*C)
         q = F.normalize(q, dim=1)  # (B, E)
         # use eeg as key
         with torch.no_grad():
-            k = self.eeg_encoder_momentum(eeg)  # (B, E)
+            k = self.eeg_encoder_momentum(eeg)  # (B, T, C)
+            k = k.flatten(start_dim=1)  # (B, T*C)
             k = F.normalize(k, dim=1)  # (B, E)
         # negative samples
         k_neg = self.queue.clone().detach().T  # (E, K)
