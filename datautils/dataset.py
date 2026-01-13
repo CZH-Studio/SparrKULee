@@ -286,6 +286,7 @@ class SparrKULeeSampler(DistributedSampler):
         self.record_indices = self.partition()
         self.indices = [indices[i] for i in self.record_indices]
         self.total_samples = sum(len(i) for i in self.indices)
+        print(f"Dataset: num_replicas: {num_replicas}, rank: {rank}, total_samples: {self.total_samples}")
         self.rng = torch.Generator().manual_seed(seed)
 
     def partition(self):

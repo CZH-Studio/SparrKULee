@@ -112,3 +112,25 @@ class DilatedConvModelFFRMel(MatchMismatchModel):
         out_512 = self.conv_512(None, [eeg_512_low_gamma, envelope_512_board_band])
         out = (out_64 + out_512) / 2
         return out
+
+class DilatedConvModelFFRWav2Vec(MatchMismatchModel):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        # in conv_64, use only wav2vec feature
+        self.conv_64 = DilatedConvModel(**kwargs)
+        # in conv_512, use only envelope feature
+        kwargs["feature_dim"] = 1
+        self.conv_512 = DilatedConvModel(**kwargs)
+        
+    def forward(self, indices: torch.Tensor, x: list[torch.Tensor]) -> torch.Tensor:
+        (
+            eeg_64_board_band,
+            wav2vec_64,
+            eeg_512_low_gamma,
+            envelope_512
+        ) = x
+        out_64 = self.conv_64(None, [eeg_64_board_band, wav2vec_64])
+        out_512 = self.conv_512(None, [eeg_512_low_gamma, envelope_512])
+        out = (out_64 + out_512) / 2
+        return out
+        

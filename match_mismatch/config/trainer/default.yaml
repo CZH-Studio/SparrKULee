@@ -15,5 +15,5 @@ trainer:
   max_epochs: 500
   accelerator: gpu
   devices: auto
-  strategy: ddp_find_unused_parameters_true
+  strategy: ddp
   precision: 32
