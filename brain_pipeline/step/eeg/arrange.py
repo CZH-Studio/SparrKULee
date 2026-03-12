@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import Any, Union, Dict
+from typing import Any, Union, Dict, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,15 +10,28 @@ from brain_pipeline import OptionalKey, DefaultKeys
 
 
 class InterpolateArtifacts(Step):
-    def __init__(self, input_keys: OptionalKey = None, output_keys: OptionalKey = None,
-                 threshold: Union[int, float] = 500):
+    def __init__(
+        self,
+        input_keys: OptionalKey = None,
+        output_keys: OptionalKey = None,
+        threshold: Union[int, float] = 500,
+    ):
+        """Interpolate EEG artifacts
+
+        :param input_keys: `[EEG]`, it is recommended to use primary filtered EEG, defaults to `[FILTERED_DATA]`
+        :type input_keys: OptionalKey, optional
+        :param output_keys: Processed EEG, defaults to `[TMP_EEG_DATA]`
+        :type output_keys: OptionalKey, optional
+        :param threshold: Threshold of max amplitude (uV), defaults to 500
+        :type threshold: Union[int, float], optional
+        """
         super().__init__(
             input_keys,
             [DefaultKeys.FILTERED_DATA],
             output_keys,
-            [DefaultKeys.TMP_EEG_DATA]
+            [DefaultKeys.TMP_EEG_DATA],
         )
-        self.assert_keys_num('==', 1, '==', 1)
+        self.assert_keys_num("==", 1, "==", 1)
         self.threshold = threshold
 
     def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
@@ -29,25 +42,40 @@ class InterpolateArtifacts(Step):
             artifact_indices = np.abs(eeg[channel_index]) > self.threshold
             # 计算出现伪影成分的起始和终止边界(索引都在伪影成分内部)
             diff = np.diff(np.concatenate(([0], artifact_indices, [0]), axis=0))
-            border_indices = np.column_stack((np.where(diff == 1)[0], np.where(diff == -1)[0] - 1))
+            border_indices = np.column_stack(
+                (np.where(diff == 1)[0], np.where(diff == -1)[0] - 1)
+            )
             num_interpolated += border_indices.shape[0]
             # 执行插值伪影算法，将伪影成分内的采样点线性插值到边界点
             for start_index, stop_index in border_indices:
                 start_sample = eeg[channel_index, start_index]
                 stop_sample = eeg[channel_index, stop_index]
-                eeg[channel_index, start_index + 1: stop_index] = np.linspace(
+                eeg[channel_index, start_index + 1 : stop_index] = np.linspace(
                     start_sample, stop_sample, max(stop_index - start_index - 1, 0)
                 )
-        logger.info(f"Interpolated {num_interpolated} artifact samples in all channels.")
+        logger.info(
+            f"Interpolated {num_interpolated} artifact samples in all channels."
+        )
         return {self.output_keys[0]: eeg}
 
 
 class Align(Step):
-    def __init__(self, input_keys: OptionalKey = None, output_keys: OptionalKey = None, ):
+    def __init__(
+        self,
+        input_keys: OptionalKey = None,
+        output_keys: OptionalKey = None,
+    ):
         """
         Align the EEG data to the stimulus data.
+
         :param input_keys: 期望：EEG数据、EEG触发、EEG采样率、刺激触发、刺激采样率
         :param output_keys: 对齐后的EEG数据
+
+        :param input_keys: `[EEG, EEG_trigger, EEG_sr, stimuli_trigger_data, stimuli_trigger_sr]`,
+        defaults to `[TMP_EEG_DATA, I_EEG_TRIGGER, I_EEG_SR, I_STI_TRIGGER_DATA, I_STI_TRIGGER_SR]`
+        :type input_keys: OptionalKey, optional
+        :param output_keys: EEG, defaults to `[TMP_EEG_DATA]`
+        :type output_keys: OptionalKey, optional
         """
         super().__init__(
             input_keys,
@@ -56,48 +84,54 @@ class Align(Step):
                 DefaultKeys.I_EEG_TRIGGER,
                 DefaultKeys.I_EEG_SR,
                 DefaultKeys.I_STI_TRIGGER_DATA,
-                DefaultKeys.I_STI_TRIGGER_SR
+                DefaultKeys.I_STI_TRIGGER_SR,
             ],
             output_keys,
-            [DefaultKeys.TMP_EEG_DATA]
+            [DefaultKeys.TMP_EEG_DATA],
         )
-        self.assert_keys_num('==', 5, '==', 1)
+        self.assert_keys_num("==", 5, "==", 1)
 
     def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
-        eeg, eeg_trigger, eeg_sr, stimuli_trigger, stimuli_sr = [input_data[key] for key in self.input_keys]
+        eeg, eeg_trigger, eeg_sr, stimuli_trigger, stimuli_sr = [
+            input_data[key] for key in self.input_keys
+        ]
         # biosemi触发信号格式
-        triggers = eeg_trigger.flatten().astype(np.int32) & 0xFFFF  # EEG触发信号中，取最后16位有效位
-        clipped = np.where((triggers >= 1) & (triggers <= 255), triggers, 0)  # 截断到1-255范围
+        triggers = (
+            eeg_trigger.flatten().astype(np.int32) & 0xFFFF
+        )  # EEG触发信号中，取最后16位有效位
+        clipped = np.where(
+            (triggers >= 1) & (triggers <= 255), triggers, 0
+        )  # 截断到1-255范围
         counts = np.bincount(clipped, minlength=256)  # 统计各触发信号出现次数
         most_common_trigger = np.argmax(counts[1:256]) + 1
-        eeg_trigger = (triggers != most_common_trigger).astype(np.int32)  # 标记非最常触发信号的位置
+        eeg_trigger = (triggers != most_common_trigger).astype(
+            np.int32
+        )  # 标记非最常触发信号的位置
         # get trigger indices
         eeg_trigger_indices = self._get_trigger_indices(eeg_trigger)
         # get stimuli indices
         stimuli_trigger_indices = self._get_trigger_indices(stimuli_trigger)
         new_eeg = self._drift_correction(
-            eeg, eeg_trigger_indices, eeg_sr,
-            stimuli_trigger_indices, stimuli_sr
+            eeg, eeg_trigger_indices, eeg_sr, stimuli_trigger_indices, stimuli_sr
         )
-        return dict(zip(
-            self.output_keys,
-            [new_eeg]
-        ))
+        return dict(zip(self.output_keys, [new_eeg]))
 
     @staticmethod
     def _get_trigger_indices(triggers: NDArray):
         # 获取触发信号为1的索引
-        all_indices = np.where(triggers > 0.5)[0]  # 这个地方写大于0.5而不是直接等于1是因为存在浮点数误差
+        all_indices = np.where(triggers > 0.5)[
+            0
+        ]  # 这个地方写大于0.5而不是直接等于1是因为存在浮点数误差
         # 获取触发信号的起始边界
         return all_indices[np.concatenate(([True], np.diff(all_indices) > 1))]
 
     @staticmethod
     def _drift_correction(
-            eeg: NDArray,
-            eeg_trigger_indices: NDArray,
-            eeg_sr: int,
-            stimulus_trigger_indices: NDArray,
-            stimuli_sr: int
+        eeg: NDArray,
+        eeg_trigger_indices: NDArray,
+        eeg_sr: int,
+        stimulus_trigger_indices: NDArray,
+        stimuli_sr: int,
     ):
         delta_num_triggers = len(eeg_trigger_indices) - len(stimulus_trigger_indices)
         # 如果EEG触发器的数量明显少于刺激触发器的数量，则抛出异常
@@ -110,14 +144,21 @@ class Align(Step):
         # 如果EEG触发器的数量+1等于刺激触发器的数量，则可以补全
         elif delta_num_triggers == -1:
             # Check if the first trigger is missing
-            last_eeg_trigger_duration = (eeg_trigger_indices[-1] - eeg_trigger_indices[-2]) / eeg_sr
-            last_stim_trigger_duration = (stimulus_trigger_indices[-1] - stimulus_trigger_indices[-2]) / stimuli_sr
+            last_eeg_trigger_duration = (
+                eeg_trigger_indices[-1] - eeg_trigger_indices[-2]
+            ) / eeg_sr
+            last_stim_trigger_duration = (
+                stimulus_trigger_indices[-1] - stimulus_trigger_indices[-2]
+            ) / stimuli_sr
             if 0.99 < last_stim_trigger_duration / last_eeg_trigger_duration < 1.01:
                 # The last trigger is missing
                 eeg_trigger_indices = np.concatenate(
                     (
                         eeg_trigger_indices,
-                        [eeg_trigger_indices[-1] + np.round(last_stim_trigger_duration * eeg_sr).astype(int)],
+                        [
+                            eeg_trigger_indices[-1]
+                            + np.round(last_stim_trigger_duration * eeg_sr).astype(int)
+                        ],
                     ),
                     axis=0,
                 )
@@ -137,7 +178,7 @@ class Align(Step):
         stimulus_diff = stimulus_trigger_indices[-1] - stimulus_trigger_indices[0]
         expected_length = int(np.ceil(stimulus_diff / stimuli_sr * eeg_sr))
         real_length = eeg_trigger_indices[-1] - eeg_trigger_indices[0]
-        tmp_eeg = eeg[:, eeg_trigger_indices[0]: eeg_trigger_indices[-1]]
+        tmp_eeg = eeg[:, eeg_trigger_indices[0] : eeg_trigger_indices[-1]]
         idx_real = np.linspace(0, 1, real_length)
         idx_expected = np.linspace(0, 1, expected_length)
         interpolate_fn = scipy.interpolate.interp1d(idx_real, tmp_eeg, "linear", axis=1)
@@ -145,7 +186,7 @@ class Align(Step):
 
         new_start = eeg_trigger_indices[0]
         begin_eeg = eeg[:, :new_start]
-        end_eeg = eeg[:, eeg_trigger_indices[-1] + 1:]
+        end_eeg = eeg[:, eeg_trigger_indices[-1] + 1 :]
 
         new_end = int(eeg_trigger_indices[-1] + 2 * eeg_sr)
         # Make length multiple of samplerate
@@ -158,7 +199,9 @@ class Align(Step):
             (total_eeg, new_eeg[:, new_eeg_start:new_eeg_end]), axis=1
         )
         end_eeg_start = max(int(new_start - begin_eeg.shape[1] - new_eeg.shape[1]), 0)
-        end_eeg_end = min(new_end - begin_eeg.shape[1] - new_eeg.shape[1], end_eeg.shape[1])
+        end_eeg_end = min(
+            new_end - begin_eeg.shape[1] - new_eeg.shape[1], end_eeg.shape[1]
+        )
         total_eeg = np.concatenate(
             (total_eeg, end_eeg[:, end_eeg_start:end_eeg_end]), axis=1
         )
@@ -169,8 +212,24 @@ class Align(Step):
 
 
 class RemoveArtifacts(Step):
-    def __init__(self, input_keys: OptionalKey = None, output_keys: OptionalKey = None,
-                 reference_channels=None, delay: int = 3):
+    def __init__(
+        self,
+        input_keys: OptionalKey = None,
+        output_keys: OptionalKey = None,
+        reference_channels: Optional[List[int]] = None,
+        delay: int = 3,
+    ):
+        """Remove EEG artifacts
+
+        :param input_keys: `[EEG, EEG_sr]`, defaults to `[TMP_EEG_DATA, I_EEG_SR]`
+        :type input_keys: OptionalKey, optional
+        :param output_keys: EEG, defaults to `[TMP_EEG_DATA]`
+        :type output_keys: OptionalKey, optional
+        :param reference_channels: Reference channels list, defaults to None
+        :type reference_channels: List[int], optional
+        :param delay: Delay seconds, defaults to 3
+        :type delay: int, optional
+        """
         super().__init__(
             input_keys,
             [
@@ -180,9 +239,9 @@ class RemoveArtifacts(Step):
             output_keys,
             [
                 DefaultKeys.TMP_EEG_DATA,
-            ]
+            ],
         )
-        self.assert_keys_num('==', 2, '==', 1)
+        self.assert_keys_num("==", 2, "==", 1)
 
         if reference_channels is None:
             self.reference_channels = [0, 1, 2, 32, 33, 34, 35, 36]
@@ -200,10 +259,7 @@ class RemoveArtifacts(Step):
         mwf_weights = self._compute_mwf(eeg.T, mask)
         filtered_eeg, artifacts = self._apply_mwf(eeg.T, mwf_weights)
         eeg_new = np.real(filtered_eeg)
-        return dict(zip(
-            self.output_keys,
-            [eeg_new]
-        ))
+        return dict(zip(self.output_keys, [eeg_new]))
 
     def _get_artifact_segments(self, eeg: NDArray, fs: int):
         ref = np.sum(eeg[:, self.reference_channels] ** 2, axis=self.axis)
@@ -216,9 +272,9 @@ class RemoveArtifacts(Step):
             if indices[i] < window_len:
                 mask[: indices[i] + window_len + 1] = True
             elif n_frames - indices[i] < window_len:
-                mask[indices[i] - window_len:] = True
+                mask[indices[i] - window_len :] = True
             else:
-                mask[indices[i] - window_len: indices[i] + window_len + 1] = True
+                mask[indices[i] - window_len : indices[i] + window_len + 1] = True
         return mask
 
     def _stack_delayed(self, eeg: NDArray, delay: int):
@@ -292,21 +348,22 @@ class RemoveArtifacts(Step):
 
 
 class CommonAverageReference(Step):
-    def __init__(self, input_keys: OptionalKey = None, output_keys: OptionalKey = None,
-                 axis: int = 0):
+    def __init__(
+        self,
+        input_keys: OptionalKey = None,
+        output_keys: OptionalKey = None,
+        axis: int = 0,
+    ):
         super().__init__(
             input_keys,
             [DefaultKeys.TMP_EEG_DATA],
             output_keys,
             [DefaultKeys.TMP_EEG_DATA],
         )
-        self.assert_keys_num('==', 1, '==', 1)
+        self.assert_keys_num("==", 1, "==", 1)
         self.axis = axis
 
     def __call__(self, input_data: Dict[str, Any], logger: Logger) -> Dict[str, Any]:
         eeg = input_data[self.input_keys[0]]
         eeg = eeg - np.mean(eeg, axis=self.axis, keepdims=True)
-        return dict(zip(
-            self.output_keys,
-            [eeg]
-        ))
+        return dict(zip(self.output_keys, [eeg]))

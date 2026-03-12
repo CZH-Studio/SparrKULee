@@ -1,0 +1,8 @@
+mne
+numpy
+torch
+scipy
+brian2
+brian2hears
+transformers
+librosa

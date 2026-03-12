@@ -11,11 +11,16 @@ class ResamplePoly(Step):
     def __init__(
         self, input_keys: Key, output_keys: OptionalKey, target_sr: int, axis: int = 0
     ):
-        """
-        Resample data using polyphase filtering.
-        :param input_keys: [data, input_sr]
-        :param output_keys: [resampled_data]
-        :param target_sr: target sampling rate
+        """Resample data using polyphase filtering.
+
+        :param input_keys: `[data, sr]`
+        :type input_keys: Key
+        :param output_keys: resampled data and sr, default to `[RESAMPLED_DATA, RESAMPLED_SR]`
+        :type output_keys: OptionalKey
+        :param target_sr: resample sr
+        :type target_sr: int
+        :param axis: resample axis, defaults to 0
+        :type axis: int, optional
         """
         super().__init__(
             input_keys,
@@ -36,25 +41,31 @@ class ResamplePoly(Step):
 class SosFilter(Step):
     def __init__(
         self,
-        input_keys: OptionalKey,
+        input_keys: Key,
         output_keys: OptionalKey,
         n: int,
         window,
         btype: str,
         axis: int = -1,
     ):
-        """
-        对数据应用零相位滤波
-        :param input_keys: [data, sr]
-        :param output_keys: [filtered_data]
-        :param n: 滤波器阶数（越高越陡，但也更不稳定）
-        :param window: 窗口
-        :param btype: 滤波类型
-        :param axis: default is -1 (last dimension)
+        """Apply zero-phase filtering to the data.
+
+        :param input_keys: `[data, sr]`
+        :type input_keys: Key
+        :param output_keys: `[FILTERED_DATA]`
+        :type output_keys: OptionalKey
+        :param n: Filter order (higher means steeper, but also less stable)
+        :type n: int
+        :param window: For lowpass and highpass filters, it is a scalar; for bandpass and bandstop filters, it is a length-2 sequence.
+        :type window: scalar / length-2 sequence
+        :param btype: Filter type
+        :type btype: str
+        :param axis: Filter axis, defaults to -1
+        :type axis: int, optional
         """
         super().__init__(
             input_keys,
-            [DefaultKeys.I_EEG_DATA, DefaultKeys.I_EEG_SR],
+            [],
             output_keys,
             [DefaultKeys.FILTERED_DATA],
         )

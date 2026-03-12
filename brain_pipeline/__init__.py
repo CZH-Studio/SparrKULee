@@ -1,8 +1,7 @@
-from enum import StrEnum
 from typing import List, Optional
 
 
-class DefaultKeys(StrEnum):
+class DefaultKeys:
     #########
     # 根目录 #
     #########

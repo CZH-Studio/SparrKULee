@@ -40,19 +40,22 @@ class GammatoneEnvelope(Step):
     ):
         """
         语音包络（envelope）是指声音信号的能量分布，即声音信号的能量随时间的变化情况。
-        语音包络的计算没有严格的定义，但最佳实践是使用Gammatone滤波器组，它能够提取声音信号的不同频率成分，符合人耳的听觉处理。
-        语音包络的计算可以分为以下步骤：
+        其计算方法没有严格的定义，但最佳实践是使用Gammatone滤波器组，它能够提取声音信号的不同频率成分，符合人耳的听觉处理。
+
+        Gammatone的计算可以分为以下步骤：
+
         1. 读取语音信号
         2. 初始化Gammatone滤波器组，默认包含28个滤波器，中心频率在50Hz到5000Hz之间
         3. 将语音信号经过滤波器组进行滤波操作，得到滤波后的语音信号组
-        4. 对于滤波后的语音信号组（多通道），计算其绝对值，乘以0.6次方，再将各个通道求和，得到包络信号（单通道）
+        4. 对于滤波后的语音信号组（多通道），计算其绝对值，乘以0.6次方的幅值，再将各个通道求和，得到包络信号（单通道）
         详见 https://ieeexplore.ieee.org/document/7478117
-        :param input_keys: 输入
-        :param output_keys: 输出
-        :param power_factor: 幅值
-        :param min_freq: 最低频率
-        :param max_freq: 最高频率
-        :param bands: 组中滤波器的数量
+
+        :param input_keys: [data, sr]
+        :param output_keys: [envelope_data]
+        :param power_factor: 幅值，默认0.6
+        :param min_freq: 最低频率，默认50
+        :param max_freq: 最高频率，默认5000
+        :param bands: 组中滤波器的数量，默认
         """
         super().__init__(
             input_keys,
