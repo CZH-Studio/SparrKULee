@@ -8,5 +8,4 @@ lightning_logs/
 **/tb_logs/
 transformer-clip-eeg/
 *.log
-technical_validation/trf/trf_plot/
-technical_validation/trf/trf_topo/
+technical_validation/trf/trf_*/
