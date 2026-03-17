@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 import pandas as pd
 
 
-from .utils import (
+from utils import (
     align,
     train_trf,
     predict_trf,
@@ -33,7 +33,7 @@ def main():
     backward: bool = args.backward
 
     direction = "backward" if backward else "forward"
-    lags = f"[{lag_min_ms},{lag_max_ms}]"
+    lag_str = f"[{lag_min_ms},{lag_max_ms}]"
     window = f"[{low},{high}]" if high > low else "bandwidth"
     shift_str = f"_shift={shift}" if shift != 0 else ""
 
@@ -101,7 +101,7 @@ def main():
         )
         subject_results.loc[subject] = [subject_result]
     subject_results.sort_index().to_csv(
-        corr_dir / f"trf_{direction}_fs={fs}_lag={lags}_wn={window}{shift_str}.csv",
+        corr_dir / f"trf_{direction}_fs={fs}_lag={lag_str}_wn={window}{shift_str}.csv",
         index=True,
         index_label="subject",
     )

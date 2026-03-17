@@ -15,14 +15,15 @@ exec_dir = Path(__file__).parent
 corr_dir = exec_dir / "trf_corr"
 plot_dir = exec_dir / "trf_plot"
 topo_dir = exec_dir / "trf_topo"
-map(lambda x: x.mkdir(exist_ok=True, parents=True), [corr_dir, plot_dir, topo_dir])
+for x in [corr_dir, plot_dir, topo_dir]:
+    x.mkdir(exist_ok=True, parents=True)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--eeg", type=str)
     parser.add_argument("-s", "--stimuli", type=str)
-    parser.add_argument("-b", "--backward", type=bool, action="store_true")
+    parser.add_argument("-b", "--backward", action="store_true")
     parser.add_argument("--fs", type=int, default=256)
     parser.add_argument("--low", type=int, default=0)
     parser.add_argument("--high", type=int, default=0)
